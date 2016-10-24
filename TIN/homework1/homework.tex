@@ -1,0 +1,251 @@
+\documentclass[11pt, a4paper]{article}
+\usepackage[czech]{babel}
+\usepackage[utf8x]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{times}
+\usepackage[left=1.5cm, top=2.5cm, text={18cm, 25cm}]{geometry}
+\usepackage{enumitem}
+\usepackage{amsmath, amssymb, amsthm, amsfonts}
+\usepackage{multicol}
+\usepackage{graphicx}
+\usepackage{auto-pst-pdf}
+\usepackage{multirow}
+
+
+\title{TIN\,--\,Domácí úkol 1}
+\author{Tomáš Coufal, xcoufa09@stud.fit.vutbr.cz}
+\newcommand{\myuv}[1]{\quotedblbase#1\textquotedblleft}
+
+\begin{document}
+\maketitle
+\section{Příklad}
+\subsection*{Zadání}
+Pro jazyk $L_1 = \{a^ib^jc^k\ |\ (j \ne k) \vee (j = 2l, l \geq 0)\}$ sestavte gramatiku $G_1$ takovou, že $L(G_1) = L_1$.
+Určete typ $G_1$ a $L_1$ dle Chomského hierarchie jazyků a rozhodněte, zda-li se tyto typy mohou obecně lišit.
+\subsection*{Řešení}
+Pro jazyk $L_1$ sestavíme gramatiku $ G_1 = \{N, T, P, S\} $, kde:
+\begin{enumerate}
+	\item $ N = \{S, A, B, C, D, E, F\} $
+	\item $ T = \{a, b, c\} $
+	\item $ P $:
+	      \begin{itemize}[label={},noitemsep]
+	      	\item $ S \rightarrow ABC\ |\ aD\ |\ Ec $
+	      	\item $ A \rightarrow aA\ |\ \varepsilon $
+	      	\item $ B \rightarrow bbB\ |\ \varepsilon $
+	      	\item $ C \rightarrow cC\ |\ \varepsilon$
+	      	\item $ D \rightarrow aDc\ |\ aD\ |\ F$
+	      	\item $ E \rightarrow aEc\ |\ Ec\ |\ F$
+	      	\item $ F \rightarrow bF\ |\ \varepsilon$
+	      \end{itemize}
+	      Množina pravidel může být v různých řešeních různá, zde jsem postupoval rozdělením podle předpisu přijímaného
+	      jazyka, který předpokládá 3 možné situace:
+	      \begin{itemize}[label={-},noitemsep]
+	      	\item Sudý počet terminálů $b$ (popsán pomocí neterminálů $A, B, C$)
+	      	\item Počet terminálů $a$ je větší než počet terminálů $c$ (popsán pomocí neterminálů $D, F$)
+	      	\item Počet terminálů $c$ je větší než počet terminálů $f$ (popsán pomocí neterminálů $E, F$)
+	      \end{itemize}
+\end{enumerate}
+
+Z důvodů podmínky v definici jazyka $L_1$, kdy $i \neq k$, tj. že počet terminálů $a$ a $c$ si není roven, je
+potřeba pravidel jako například $ D \rightarrow aDc $. To znamená, že námi popisovaná gramatika vyhovuje v Chomského
+klasifikaci typu 2. Pro typ 3 nejsou taková pravidla povolena. Námi definovaná gramatika vede na implementaci
+zásobnikovým automatem. Z těchto příčin je jak gramatika $G_1$, tak i jazyk $L_1$ typu 2 podle Chomského klasifikace
+jazyků.
+
+Tvrzení, o možnosti, aby se třída jazyka lišila oproti gramatice je pravdivé a vyplývá z vět 2.3 a 2.4 ve skriptech.
+Z těch plyne, že každou gramatiku $n$-tého typu lze převést na gramatiku typu $n - 1$. To znamená, že pro ten samý jazyk
+mohou existovat gramatiky různých typů.
+
+\section{Příklad}
+\subsection*{Zadání}
+Regulární výraz: $r_2 = (a + b + \varepsilon)^*(ab)^*$. Převeďte postupně (přes RKA, DKA) na redukovaná DKA $M_2$. Pro
+jazyk $L(M_2)$ určete počet tříd ekvivalence relace $\sim_L$, vypište je a popište např. pomocí KA.
+\subsection*{Řešení}
+Nejprve pro zadaný RV vytvoříme strom:
+\begin{center}
+	\includegraphics[width=4in]{exercise_2_tree.ps}
+\end{center}
+
+\noindent Podle tohoto stromu, jsme schopni algoritmicky sestavit rozšířený konečný automat:
+\begin{center}
+	\includegraphics[width=6.8in]{exercise_2_rka.ps}
+\end{center}
+
+
+\noindent $ M_{RKA} = \{Q_{RKA}, \Sigma, \delta_{RKA}, S_{RKA}, F_{RKA}\}$, kde:
+\begin{enumerate}
+	\item $ Q_{RKA} = \{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15\}$
+	\item $ \Sigma = \{a, b\}$
+	\item $ \delta_{RKA} $ viz nákres automatu
+	\item $ S_{RKA} = 1$
+	\item $ F_{RKA} = \{15\}$
+\end{enumerate}
+
+\noindent Pro jeho determinizaci si musíme spočítat $\varepsilon$\textit{-uzávěr} pro každý stav a přijímaný znak:
+\begin{itemize}[label={},noitemsep]
+	\item $\varepsilon$\textit{-uzávěr}$(1) = \{1, 2, 3, 4, 11, 5, 6, 8, 12, 13, 16\} = A$
+	\item $\delta'(A, a) = \varepsilon$\textit{-uzávěr}$(\{7, 14\}) = \{7, 10, 11, 2, 3, 4, 5, 6, 8, 12, 13, 14, 16\} = B$
+	\item $\delta'(A, b) = \varepsilon$\textit{-uzávěr}$(\{9\}) = \{9, 10, 11, 2, 3, 4, 5, 6, 8, 12, 13, 16\} = C$
+	\item $\delta'(B, a) = \varepsilon$\textit{-uzávěr}$(\{7, 14\}) = B$
+	\item $\delta'(B, b) = \varepsilon$\textit{-uzávěr}$(\{9, 15\}) = \{9, 10, 11, 2, 3, 4, 5, 6, 8, 12, 13, 15, 16\} = D$
+	\item $\delta'(C, a) = \varepsilon$\textit{-uzávěr}$(\{7, 14\}) = B$
+	\item $\delta'(C, b) = \varepsilon$\textit{-uzávěr}$(\{9\}) = C$
+	\item $\delta'(D, a) = \varepsilon$\textit{-uzávěr}$(\{7, 14\}) = B$
+	\item $\delta'(D, b) = \varepsilon$\textit{-uzávěr}$(\{9\}) = C$
+\end{itemize}
+
+\noindent Z vypočtených uzávěrů plyne, že po determinizaci nám vznikne automat $M_{DKA} = \{Q_{DKA}, \Sigma, \delta_{DKA}, S_{DKA}, F_{DKA}\}$ takový, že:
+\begin{enumerate}
+	\item $ Q_{DKA} = \{A, B, C, D\}$
+	\item $ \Sigma = \{a, b\}$
+	\item $ \delta_{DKA} $ viz nákres automatu
+	\item $ S_{DKA} = A$
+	\item $ F_{DKA} = \{a, B, C, D\}$
+\end{enumerate}
+\begin{center}
+	\includegraphics[width=3in]{exercise_2_dka.ps}
+\end{center}
+
+\noindent Následně jej můžeme redukovat pomocí výpočtu tříd ekvivalence:
+
+\begin{multicols}{2}
+	$\equiv^0 \{\{A, B, C, D\}\}$
+
+	$\equiv^1 \{\{A, B, C, D\}\} = \equiv^0 = \equiv$
+
+	$Q' = \{[A]\}$, kde $[A] = \{A, B, C, D\}$
+	\columnbreak
+
+	\begin{tabular}{|cc|cc|}
+		\hline
+		\multicolumn{2}{|c}{$\equiv^0$}& $a$ & $b$ \\
+		\hline
+		\multirow{4}{*}{0:} & $A$ & $B_0$ & $C_0$ \\
+		                    & $B$ & $B_0$ & $D_0$ \\
+		                    & $C$ & $B_0$ & $C_0$ \\
+		                    & $D$ & $B_0$ & $C_0$ \\
+		\hline
+	\end{tabular}
+\end{multicols}
+
+\noindent Výsledný redukovaný deterministický konečný automat tedy vypadá takto:
+\begin{center}
+	\includegraphics[width=0.8in]{exercise_2_rdka.ps}
+\end{center}
+
+\noindent Z výpočtu výše nám vyplývá počet tříd ekvivalence, tak RV pro přijímaný jazyk, automat viz výše:
+
+$L^{-1}([A]) = \varepsilon + (a + b)^*$
+
+\section{Příklad}
+\subsection*{Zadání}
+NKA $M_3$ nad abecedou $ \Sigma = \{a, b, c\} $:
+\begin{center}
+	\includegraphics[width=2.5in]{exercise_3.ps}
+\end{center}
+
+\subsection*{Řešení}
+Sestavíme rovnice pro jednotlivé stavy:
+\begin{itemize}[label={},noitemsep]
+	\item $ A = aB + cB $
+	\item $ B = cB + bC $
+	\item $ C = aB + bA + \varepsilon $
+\end{itemize}
+Poté spočítáme RV pro počáteční stav $A$:
+\begin{itemize}[label={},noitemsep]
+	\item $\begin{aligned} B &= cB + bC = c^*bC = c^*b(aB + bA + \varepsilon) = c^*baB + c^*bbA + c^*b = (c^*ba)^*(c^*bbA + c^*b)
+	      \\ A &= aB + cB = (a + c)B = (a + c)(c^*ba)^*(c^*bbA + c^*b) =
+	      (a + c)(c^*ba)^*c^*bbA + (a + c)(c^*ba)^*c^*b \\&= ((a + c)(c^*ba)^*c^*bb)^*
+	      (a + c)(c^*ba)^*c^*b \end{aligned}$
+\end{itemize}
+
+\section{Příklad}
+\subsection*{Zadání}
+\begin{itemize}[label={},noitemsep]
+	\item $ L_1 \subseteq \{a, b, c\}^*$
+	\item $ L_2 \subseteq \{0, 1\}^* $
+	\item $ bin: \{a, b, c\}^* \rightarrow \{0, 1\}^* $:
+	      \begin{itemize}[label={},noitemsep]
+	      	\item $ bin(\varepsilon) = \varepsilon $
+	      	\item $ bin(a) = 00 $
+	      	\item $ bin(b) = 01 $
+	      	\item $ bin(c) = 11 $
+	      \end{itemize}
+	\item pro $ |w| > 1:  (w = xw' \wedge |x| = 1) \Rightarrow bin(w) = bin(x) bin(w') $
+\end{itemize}
+
+\begin{multicols}{2}
+	\subsubsection*{Vstup}
+	\begin{itemize}[label={},noitemsep]
+		\item $ M_1 = (Q_1, \{a, b, c\}, \delta_1, q_1^0, F_1)$
+		\item $ M_2 = (Q_2, \{0, 1\}, \delta_2, q_2^0, F_2)$
+	\end{itemize}
+	\columnbreak
+	\subsubsection*{Výstup}
+	\begin{itemize}[label={},noitemsep]
+		\item $ M_f $, kde:
+		\item $ L(M_f) = \{w | w \in l(M_1) \wedge bin(w) \in L(M_2)\} $
+	\end{itemize}
+\end{multicols}
+
+\subsection*{Řešení}
+$ M_f = (Q_f, \Sigma_f, \delta_f, q_f^0, F_f)$, kde:
+\begin{enumerate}
+	\item $ Q_f = Q_1 \times Q_2 $, automat používá stavy obou vstupních automatů
+	\item $ \Sigma_f = \{a, b, c\}$, z definice výstupního automatu plyne, že přijímaná abeceda je stejná jako pro $ M_1 $
+	\item $ \delta_f: Q_f \times \Sigma_f \rightarrow 2^{Q_f} $: \\
+	      Automat pro přijetí znaku vyžaduje existenci přechodu v $ M_1 $ pomocí znaku vstupní abecedy a zároveň
+	      je žádoucí, aby existoval přechod v $ M_2 $ pomocí binární reprezentace (výstup funkce $ bin $) toho
+	      samého znaku. Ta však zahrnuje dva znaky abecedy přijímané $ M_2 $, a proto je třeba nalézt dva
+	      navazující přechody v $ M_2 $. Formálně:
+	      $\begin{aligned} \forall q_1^1, &q_1^2 \in Q_1, \forall q_2^1, q_2^2 \in Q_2, \forall a \in \Sigma_f: \\& (q_1^2, q_2^2) \in \delta_f((q_1^1, q_2^1), a) \Leftrightarrow \\& q_1^2 \in \delta_1(q_1^1, a) \wedge ( \forall x, y \in \{0, 1\}, \exists q_2^T \in Q_2: q_2^2 \in \delta_2(q_2^T, y) \wedge  q_2^T \in \delta_2(q_2^1, x)\ |\ xy = bin(a)) \end{aligned}$
+	\item $ q_f^0 = (q_1^0, q_2^0) $, počáteční stav je společným počátečním stavem obou vstupních automatů
+	\item $ F_f = F_1 \times F_2 $, koncové stavy jsou kartézským součinem koncových stavů obou vstupních automatů
+\end{enumerate}
+
+\section{Příklad}
+\subsection*{Zadání}
+$ L = \{a^ib^jc^k\ |\ i > k \wedge j \geq 1\}$, dokažte, je-li $L$ regulární.
+\subsection*{Řešení}
+\subsubsection*{Důkaz sporem}
+Předpokládejme, že $L$ je regulární.
+\bigskip
+
+\noindent Pumping Lemma: $\exists p > 0, \forall w \in L: |w| \geq p \Rightarrow \exists x,y,z \in \Sigma^*: w = xyz \wedge 0 \leq |y| \leq k \wedge xy^lz \in L\ |\ l \geq 0$
+\bigskip
+
+\noindent Zvolme: $ w = a^{p+1}bc^p, w \in L: |w| = 2p+2 \geq p $
+\bigskip
+
+\noindent Pro $i = 2$ zvolme $w = xyz$:
+\begin{itemize}[label={},noitemsep]
+	\item $x = a^{p+1}b$
+	\item $y = c^p$
+	\item $z = \varepsilon$
+\end{itemize}
+
+\noindent Pak, ale zjistíme, že: $xy^lz = a^{p+1}bc^p$, kde platí:
+\begin{itemize}[label={},noitemsep]
+	\item $|x| = p + 2$, kde $x = a^{p+1}b$
+	\item $|y| = 2p$, kde $y = c^{2p}$
+	\item $|z| = 0$, kde $z = \varepsilon$
+\end{itemize}
+
+\noindent To znamená, že v řetězci $x$ je $p + 1$ symbolů \myuv{$a$} a v řetězci $y$ je $2p$ symbolů \myuv{$c$}. Tedy:
+\begin{itemize}[label={},noitemsep]
+	\item $i = p + 1$
+	\item $k = 2p$
+\end{itemize}
+\noindent Musí platit: $ i > k \Rightarrow p + 1 > 2p \wedge p > 0$. Spor.
+
+\section{Příklad}
+\subsection*{Zadání}
+Dokažte, že pro každý regulární jazyk existuje jednoznačná gramatika.
+\subsection*{Řešení}
+Každý regulární jazyk lze popsat konečným automatem. Víme, že pro každý konečný automat (\textit{KA}) existuje
+ekvivalentní deterministický konečný automat (\textit{DKA}). To znamená, že v každé konfiguraci existuje jednoznačná
+přechodová funkce a každý takový DKA je možné převést na pravou regulární gramatiku (\textit{G}). Z jednoznačnosti
+přechodové funkce plyne, že výsledná gramatika generuje jednoznačný derivační strom, tedy z existence takové vazby mezi
+\textit{KA}, \textit{DKA} až k \textit{G} je jasné, že existuje pro každá regulární jazyk jednoznačná gramatika.
+
+\end{document}

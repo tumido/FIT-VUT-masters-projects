@@ -1,0 +1,10 @@
+digraph exercise_2_rdka {
+    rankdir=LR;
+    size="8,5"
+
+    node [shape = point ]; qi
+    node [shape = doublecircle, label="A"]; A;
+
+    qi -> A;
+    A  -> A [ label = "a, b" ];
+}

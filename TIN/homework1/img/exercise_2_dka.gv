@@ -1,0 +1,23 @@
+digraph exercise_2_dka {
+    rankdir=LR;
+    size="8,5"
+
+    node [shape = point ]; qi
+    node [shape = doublecircle]; A;
+    node [shape = doublecircle]; B;
+    node [shape = doublecircle]; C;
+    node [shape = doublecircle]; D;
+
+    qi -> A;
+    A  -> B [ label = "a" ];
+    A  -> C [ label = "b" ];
+
+    B  -> B [ label = "a" ];
+    B  -> D [ label = "b" ];
+
+    C  -> B [ label = "a" ];
+    C  -> C [ label = "b" ];
+
+    D  -> B [ label = "a" ];
+    D  -> C [ label = "b" ];
+}

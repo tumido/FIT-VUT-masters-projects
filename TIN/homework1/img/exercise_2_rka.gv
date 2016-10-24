@@ -1,0 +1,47 @@
+digraph exercise_2_rka {
+    rankdir=LR;
+    size="8,5"
+
+    node [shape = point ]; qi
+    node [shape = circle]; 1;
+    node [shape = circle]; 2;
+    node [shape = circle]; 3;
+    node [shape = circle]; 4;
+    node [shape = circle]; 5;
+    node [shape = circle]; 6;
+    node [shape = circle]; 7;
+    node [shape = circle]; 8;
+    node [shape = circle]; 9;
+    node [shape = circle]; 10;
+    node [shape = circle]; 11;
+    node [shape = circle]; 12;
+    node [shape = circle]; 13;
+    node [shape = circle]; 14;
+    node [shape = circle]; 15;
+    node [shape = doublecircle]; 16;
+
+    qi -> 1;
+    1  -> 2 [label="epsilon"];
+    2  -> 3 [label="epsilon"];
+    2  -> 5 [label="epsilon"];
+    3  -> 4 [label="epsilon"];
+    4  -> 11 [label="epsilon"];
+    5  -> 6 [label="epsilon"];
+    6  -> 7 [label="a"];
+    7  -> 10 [label="epsilon"];
+    5  -> 8 [label="epsilon"];
+    8  -> 9 [label="b"];
+    9  -> 10 [label="epsilon"];
+    10 -> 11 [label="epsilon"];
+    11 -> 12 [label="epsilon"];
+    11 -> 2 [label="epsilon"];
+    1 -> 12 [label="epsilon"];
+    12 -> 13 [label="epsilon"];
+    12 -> 16 [label="epsilon"];
+    13 -> 14 [label="a"];
+    14 -> 15 [label="b"];
+    15 -> 16 [label="epsilon"];
+    15 -> 13 [label="epsilon"];
+
+
+}

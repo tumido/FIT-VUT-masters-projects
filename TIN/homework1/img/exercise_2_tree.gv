@@ -1,0 +1,47 @@
+digraph exercise_2_tree {
+    ordering=out;
+    size="8,5"
+
+    node [shape=plaintext,label="r1" ] r_1;
+    node [shape=plaintext,label="r2" ] r_2;
+    node [shape=plaintext,label="r3" ] r_3;
+    node [shape=plaintext,label="r4" ] r_4;
+    node [shape=plaintext,label="r5" ] r_5;
+    node [shape=plaintext,label="r6" ] r_6;
+    node [shape=plaintext,label="r8" ] r_7;
+    node [shape=plaintext,label="r7" ] r_8;
+    node [shape=plaintext,label="r9" ] r_9;
+    node [shape=plaintext,label="r10" ] r_10;
+    node [shape=plaintext,label="r11" ] r_11;
+    node [shape=plaintext,label="r12" ] r_12;
+    node [shape=plaintext,label="r13" ] r_13;
+    node [shape=plaintext,label="a" ] a_1;
+    node [shape=plaintext,label="a" ] a_2;
+    node [shape=plaintext,label="b" ] b_1;
+    node [shape=plaintext,label="b" ] b_2;
+    node [shape=plaintext,label="" ] eps;
+    node [shape = plaintext,label="+" ] plus_1;
+    node [shape = plaintext,label="+" ] plus_2;
+    node [shape = plaintext,label="(" ] brack_1;
+    node [shape = plaintext,label=")" ] brack_2;
+    node [shape = plaintext,label="(" ] brack_3;
+    node [shape = plaintext,label=")" ] brack_4;
+    node [shape = plaintext,label="*" ] star_1;
+    node [shape = plaintext,label="*" ] star_2;
+    node [shape = plaintext,label="." ] times_1;
+    node [shape = plaintext,label="." ] times_2;
+
+    r_1 -> a_1;
+    r_2 -> b_1;
+    r_3 -> r_1; r_3 -> plus_1; r_3 -> r_2;
+    r_4 -> eps;
+    r_5 -> r_3; r_5 -> plus_2; r_5 -> r_4;
+    r_6 -> brack_1; r_6 -> r_5; r_6 -> brack_2;
+    r_7 -> r_6; r_7 -> star_1;
+    r_8 -> a_2;
+    r_9 -> b_2;
+    r_10 -> r_8; r_10 -> times_1; r_10 -> r_9;
+    r_11 -> brack_3; r_11 -> r_10; r_11 -> brack_4;
+    r_12 -> r_11; r_12 -> star_2;
+    r_13 -> r_7; r_13 -> times_2; r_13 -> r_12;
+}
