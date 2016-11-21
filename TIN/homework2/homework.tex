@@ -1,0 +1,205 @@
+\documentclass[11pt, a4paper]{article}
+\usepackage[czech]{babel}
+\usepackage[utf8x]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{times}
+\usepackage[left=1.5cm, top=2.5cm, text={18cm, 25cm}]{geometry}
+\usepackage{enumitem}
+\usepackage{amsmath, amssymb, amsthm, amsfonts}
+\usepackage{multicol}
+\usepackage{titling}
+\usepackage{tikz}
+\usetikzlibrary{automata,positioning}
+
+\renewcommand\thesection{\arabic{section}.}
+\title{TIN\,--\,Domácí úkol 2}
+\author{Tomáš Coufal, xcoufa09@stud.fit.vutbr.cz}
+\newcommand{\myuv}[1]{\quotedblbase#1\textquotedblleft}
+
+\begin{document}
+\maketitle
+\section{Příklad}
+\subsection*{Zadání}
+Mějme abecedu $ \Sigma $, kde $ \Sigma \cap \{\top, \bot \} = \emptyset $ a jazyk $ L = L(G) $ nad $ \Sigma $, zadaný pomocí BKG $ G $. Dále uvažujme jazyk $ L' = \{w.a | w \in \Sigma^* \wedge (w \in L \Leftrightarrow a = \top) \wedge (w \notin L \Leftrightarrow a = \bot) \} $. Nalezněte algoritmus pro sestavení $ G'$, takové, že $ L(G') = L'$, nebo jeho existenci vyvraťte.
+\subsection*{Řešení}
+Pro jazyk $ L' $ musí platit, že $ L' =  L(G') = L(G) \cup L'(G) $. U bezkontextových gramatik však platí, že nejsou uzavřeny vůči doplňku a proto nelze sestrojit odpovídající bezkontextovou gramatiku $ G' $, která by generovala $ L' $. Z toho plyne, že hledaný algoritmus nemůže existovat.
+
+\clearpage
+\maketitle
+\section{Příklad}
+\subsection*{Zadání}
+Uvažujme abecedu $\Sigma = \{a, b, c\}$ a funkce $\#_a, \#_b, \#_c: \Sigma^* \rightarrow \mathbb{N}$, které pro slovo $w$ počítají počet výskytů symbolu abecedy. Pomocí Chomsky-Sch\"utzenbergerovy věty dokažte, že jazyk $L = \{w \in \Sigma^* | \#_a = \#_b\}$ je bezkontextový. tzn. najděte $n \in \mathbb{N}, R \in \mathcal{L}_3$ a $h: \{[^1,]^1,\ldots, [^n,]^n\} \rightarrow \Sigma^*$ takové, že $L = h(ZAV_n \cap R)$.
+\subsection*{Řešení}
+
+Nejprve nalezneme gramatiku $G = \{N, \Sigma, P, S\}$ generující jazyk $L$.
+\begin{itemize}[label={},noitemsep]
+	\item $N = \{S\}$
+	\item $P: S \rightarrow aSb | bSa | cS | SS | \varepsilon$
+\end{itemize}
+
+\noindent Následně tuto gramatiku převedeme do CNF $G'= \{N, \Sigma, P', S\}$, kde $P'$:
+\begin{itemize}[label={},noitemsep]
+	\item $S \rightarrow ASB | BSA | CS | SS | \varepsilon$
+	\item $A \rightarrow a$
+	\item $B \rightarrow b$
+	\item $C \rightarrow c$
+\end{itemize}
+
+\noindent Tato gramatika je v $\mathcal{L}_3$. Následně $ZAV_3$ je generováno gramatikou:
+\begin{itemize}[label={},noitemsep]
+	\item pravidla: $S \rightarrow [^1S]^1 | [^2S]^2 | [^3S]^3 | SS | \varepsilon$
+	\item $\begin{aligned}h: [^1 &\rightarrow a \\
+	      ]^1 &\rightarrow b \\
+	      [^2 &\rightarrow b \\
+	      ]^2 &\rightarrow a \\
+	      [^3 &\rightarrow c \\
+	      ]^3 &\rightarrow \varepsilon
+	\end{aligned}$
+\end{itemize}
+
+\noindent Ze $ZAV_3$ odvodíme $R$ obsahující všechny kombinace závorek. $R = (\{[^1\} \cup \{]^1\} \cup \{[^2\} \cup \{]^2\} \cup \{[^3\} \cup \{]^3\})^*$
+
+\clearpage
+\maketitle
+\section{Příklad}
+\subsection*{Zadání}
+Pro abecedu $ \Sigma = \{a, b, \bot, 0, \top \} $ sestrojte deterministicky zásobníkový automat přijímající jazyk $ L \subseteq \Sigma^* $ definovaný:
+$\begin{aligned}
+	L = & \{w.0\ |\ w \in \{a, b \}^* \wedge \#_a(w) = \#_b(w)\}\ \cap    \\
+	    & \{w.\top\ |\ w \in \{a, b \}^* \wedge \#_a(w) > \#_b(w)\}\ \cap \\
+	    & \{w.\bot\ |\ w \in \{a, b \}^* \wedge \#_a(w) < \#_b(w)\}
+\end{aligned}$
+
+\noindent Jako abecedu zásobníkových symbolů $ \Gamma $, zvolte $ \Gamma = \{\#,\bullet \} $ a symbol $ \# $ jako starotovací symbol zásobníku. Zapište v grafické formě a demostrujte přijetí slova $ abbaa\top $.
+
+\subsection*{Řešení}
+
+\begin{multicols}{2}
+	\begin{center}
+		\begin{tikzpicture}[shorten >=1pt,node distance=4cm,on grid,auto]
+			\node[state] (A)   {$A$};
+			\node[state] (C) [right=of A] {$C$};
+			\node[state] (B) [above=of C] {$B$};
+			\node[state,accepting](D) [right=of C] {$D$};
+			\draw[<-] (A) -- node[above] {$\#$} ++(-1cm,0);
+			\path[->]
+			(A) edge [bend left=20] node {$a, \# / \bullet \#$} (B)
+			(A) edge node {$b, \# / \bullet \#$} (C)
+			(A) edge [below,bend right=90] node {$0, \# / \varepsilon$} (D)
+			(B) edge [bend left=10] node {$b, \# / \bullet \#$} (C)
+			(B) edge [loop above] node [align=center] {$a, \varepsilon / \bullet$ \\ $b, \bullet / \varepsilon$} ()
+			(B) edge [bend left=20] node [align=center] {$\top, \bullet / \varepsilon$ \\ $0, \# / \varepsilon$} (D)
+			(C) edge [bend left=10] node {$a, \# / \bullet \#$} (B)
+			(C) edge [loop below] node [align=center] {$b, \varepsilon / \bullet$ \\ $a, \bullet / \varepsilon$} ()
+			(C) edge node [align=center] {$\bot, \bullet / \varepsilon$ \\ $0, \# / \varepsilon$} (D);
+		\end{tikzpicture}
+	\end{center}
+
+	\columnbreak
+
+	Přijetí $ abbaa\top $ automatem:
+	\bigskip
+
+	$\begin{aligned}
+		(A, abbaa\top, \#) & \vdash (B, bbaa\top, \bullet \#) \\
+		                   & \vdash (B, baa\top, \#)          \\
+		                   & \vdash (C, aa\top, \bullet \#)   \\
+		                   & \vdash (C, a\top, \#)            \\
+		                   & \vdash (B, \top, \bullet \#)     \\
+		                   & \vdash (D, \varepsilon, \#)
+	\end{aligned}$
+\end{multicols}
+\clearpage
+\maketitle
+\section{Příklad}
+\subsection*{Zadání}
+Pravděpodobnostní bezkontextová gramatika $G_\% = (N, \Sigma, P, S, \mu)$, kde:
+\begin{enumerate}
+	\item $\forall X \in N$ je součet pravděpodobností všech pravidel $X \rightarrow \beta \in P$ (tj. kde $X$ je na levé straně) roven 1.
+	\item $P \rightarrow \langle 0, 1\rangle$
+\end{enumerate}
+
+\noindent Uvažujte iterativní proces derivování věty, která začíná větnou formou $\delta = S$ a v každé iteraci buď skonší hodnotou $\delta$ (pokud je $\delta$ větou) nebo nedeterministicky rozdělí $\delta$ na $\alpha A\beta$ a položí s pravděpodobností $p(A \rightarrow \gamma)$, kde $A \rightarrow \gamma \in P$ hodnotu $\delta$ rovnu $\alpha\gamma\beta$.
+
+\noindent Navrhněte algoritmus pro výpočet pravděpodobnosti s jakou $G_\%$ vygeneruje danou větu $w$. Předpokládejte, že $G$ je vlastní.
+\subsection*{Řešení}
+Pro vygenerování věty $w$ pravidly ve tvaru $\alpha_1 \rightarrow \beta_1, \alpha_2 \rightarrow \beta_2,\ldots \alpha_n \rightarrow \beta_n$ je $ p = \prod\limits_{i=1}^n q(\alpha_i \rightarrow \beta_i)$, kde $q$ je pravděpodobnost pravidla.
+
+\noindent Na tomto základě můžemem uvažovat algoritmus:
+\begin{enumerate}
+	\item Vstupem je pravděpodobnostní bezkontextová gramatika $G_\%$ a řetězec $w$
+	\item Sestav všechny různé derivační stromy řetězce $w$
+	\item Vynásob mezi sebou pravděpodobnostní ohodnocení pravidel v listech stromů
+	\item Takto získané hodnoty sečti
+	\item Výsledek je pravděpodobnost vygenerování řetězce $w$ gramatikou $G_\%$
+\end{enumerate}
+
+\noindent V případě, že $G$ není vlastní gramatika, nastaly by problémy s cykly v derivačních stromech\ldots
+
+\clearpage
+\maketitle
+\section{Příklad}
+\subsection*{Zadání}
+$L = \{w \in \{a, b, c\}^* | \#_a(w) < \#_b(w) < \#_c(w)\}$, kde $\#_x(w)$ značí počet výskytů symbolu $x \in \{a, b, c\}$ ve slově $w$. Dokažte pomocí Pummping Lemmatu, že $L$ není bezkontextový.
+\subsection*{Řešení}
+Pummping Lemma:
+
+$\exists k > 0: \forall z \in L: |z| \geq k \Rightarrow \exists u, v, w, x, y \in \Sigma^*: z = uvwxy \wedge vx \neq \varepsilon \wedge |vwx| \leq k \wedge \forall i \geq 0: uv^iwx^iz \in L$
+
+\noindent Zvolme $z = a^kb^{k+1}c^{k+2}$, tedy $|a^kb^{k+1}c^{k+2}| = 3k + 3 > k$. To znamená, že musí existovat řetězec splňující tyto vlastnosti vůči zvolenému $z$. Pokud uvážíme všechny možné volby $uvwxy$, vznikne 5 situací:
+
+\begin{enumerate}
+	\setlength\multicolsep{4pt}
+	\item $x = a^kb^{k+1}$ nebo $v = a^kb^{k+1}$. Zvolme $i = 2$, pak platí:
+	      \begin{multicols}{2}
+	      	\begin{itemize}[label={},noitemsep]
+	      		\item $\#_a(z) = 2k$
+	      		\item $\#_b(z) = 2k + 2$
+	      		\item $\#_c(z) = k + 2$
+	      	\end{itemize}
+	      	\columnbreak
+	      	\textbf{SPOR}: $\#_a(z) < \#_b(z) \nless \#_c(z)$ pro $k > 0$
+	      \end{multicols}
+	\item $x = b^{k+1}c^{k+2}$ nebo $v = b^{k+1}c^{k+2}$. Zvolme $i = 0$, pak platí:
+	      \begin{multicols}{2}
+	      	\begin{itemize}[label={},noitemsep]
+	      		\item $\#_a(z) = k$
+	      		\item $\#_b(z) = 0$
+	      		\item $\#_c(z) = 0$
+	      	\end{itemize}
+	      	\columnbreak
+	      	\textbf{SPOR}: $\#_a(z) \nless \#_b(z) \nless \#_c(z)$ pro $k > 0$
+	      \end{multicols}
+	\item $x = a^k$ nebo $v = a^k$. Zvolme $i = 2$, pak platí:
+	      \begin{multicols}{2}
+	      	\begin{itemize}[label={},noitemsep]
+	      		\item $\#_a(z) = 2k$
+	      		\item $\#_b(z) = k + 1$
+	      		\item $\#_c(z) = k + 2$
+	      	\end{itemize}
+	      	\columnbreak
+	      	\textbf{SPOR}: $\#_a(z) \nless \#_b(z) < \#_c(z)$ pro $k > 0$
+	      \end{multicols}
+	\item $x = b^{k+1}$ nebo $v = b^{k+1}$. Zvolme $i = 2$, pak platí:
+	      \begin{multicols}{2}
+	      	\begin{itemize}[label={},noitemsep]
+	      		\item $\#_a(z) = 2k$
+	      		\item $\#_b(z) = k + 1$
+	      		\item $\#_c(z) = k + 2$
+	      	\end{itemize}
+	      	\columnbreak
+	      	\textbf{SPOR}: $\#_a(z) \nless \#_b(z) < \#_c(z)$ pro $k > 0$
+	      \end{multicols}
+	\item $x = c^{k+2}$ nebo $v = c^{k+2}$. Zvolme $i = 0$, pak platí:
+	      \begin{multicols}{2}
+	      	\begin{itemize}[label={},noitemsep]
+	      		\item $\#_a(z) = k$
+	      		\item $\#_b(z) = k + 1$
+	      		\item $\#_c(z) = 0$
+	      	\end{itemize}
+	      	\columnbreak
+	      	\textbf{SPOR}: $\#_a(z) < \#_b(z) \nless \#_c(z)$ pro $k > 0$
+	      \end{multicols}
+\end{enumerate}
+
+\end{document}
