@@ -1,0 +1,129 @@
+\documentclass[11pt, a4paper]{article}
+\usepackage[czech]{babel}
+\usepackage[utf8x]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{times}
+\usepackage[left=1.5cm, top=2.5cm, text={18cm, 25cm}]{geometry}
+\usepackage{enumitem}
+\usepackage{amsmath, amssymb, amsthm, amsfonts}
+\usepackage{multicol}
+\usepackage{titling}
+\usepackage{tikz}
+\usetikzlibrary{automata,positioning}
+
+\renewcommand\thesection{\arabic{section}.}
+\title{TIN\,--\,Domácí úkol 3}
+\author{Tomáš Coufal, xcoufa09@stud.fit.vutbr.cz}
+\newcommand{\myuv}[1]{\quotedblbase#1\textquotedblleft}
+
+\begin{document}
+\maketitle
+\section{Příklad}
+\subsection*{Řešení}
+Gramatika popisující daný Turingův stroj:
+
+\noindent $G = (\{S\}, \{a, ,b, c\}, P, S) $, kde:
+
+$ P: S \rightarrow \varepsilon | aS | bS$
+
+\noindent Pro slovo $w = bab$, bude měh následující:
+
+\noindent
+$\begin{aligned}
+	(1, \Delta bab \Delta, 1) & \vdash (2, \Delta bab \Delta, 2) \vdash (3, \Delta bab \Delta, 3) \vdash (4, s_b^3(\Delta bab \Delta), 3) \vdash (5, \Delta bbb \Delta, 2) \\
+	                          & \vdash (6, s_a^2(\Delta bbb \Delta), 2) \vdash (7, \Delta abb \Delta, 3) \vdash (7, \Delta abb \Delta, 4) \vdash (7, \Delta abb \Delta, 5) \\
+	                          & \vdash (8, \Delta abb \Delta, 4) \vdash (8, \Delta abb \Delta, 3)  \vdash (8, \Delta abb \Delta, 2) \vdash (8, \Delta abb \Delta, 1)       \\
+	                          & \vdash (2, \Delta abb \Delta, 2) \vdash (2, \Delta abb \Delta, 3) \vdash (3, \Delta abb \Delta, 4) \vdash (3, \Delta abb \Delta, 5)        \\
+	                          & \vdash (9, \Delta abb \Delta, 4) \vdash (9, \Delta abb \Delta, 3) \vdash (9, \Delta abb \Delta, 2) \vdash (9, \Delta abb \Delta, 1)        \\
+	                          & \vdash (10, \Delta abb \Delta, 2) \vdash (10, \Delta abb \Delta, 3) \vdash (11, \Delta abb \Delta, 4) \vdash (11, \Delta abb \Delta, 5)    \\
+	                          & \vdash (12, \Delta abb \Delta \Delta, 6)
+\end{aligned}$
+
+
+\clearpage
+\maketitle
+\section{Příklad}
+\subsection*{Řešení}
+\noindent Předpokládáme, že každá REC je C, pak:
+
+\begin{tabular}{c|cccc}
+	                & $\varepsilon$                     & $0$           & $1$           & \ldots   \\
+	\hline
+	$M_\varepsilon$ & $H_{M_{\varepsilon,\varepsilon}}$ & \ldots        & \ldots        & \ldots   \\
+	$M_0$           & $\vdots$                          & $H_{M_{0,0}}$ & \ldots        & \ldots   \\
+	$M_1$           & $\vdots$                          & $\vdots$      & $H_{M_{1,1}}$ & \ldots   \\
+	$\vdots$        & $\vdots$                          & $\vdots$      & $\vdots$      & $\ddots$
+\end{tabular}
+
+\noindent kde $\{\varepsilon, 0, 1, \dots\}$ je množina všech řetězců jazyků C a $\{M_\varepsilon, M_0, M_1, \dots\}$ jsou všechny TS (REC, C). Na diagonále pak nalezneme K přijímající jako LOA.
+
+\noindent Pro všechny $H_{M_{x,y}}$ pak platí:
+
+$H_{M_{x,y}} = \{ \begin{array}{l}
+C, \text{jestliže }M_x\text{ nepřijme } y \\
+Z, \text{jestliže }M_x\text{ přijme } y \\
+\end{array}$
+
+\noindent Předpokládejme, že $\exists$ TS K, pak K pro vstup $<M> \# w$:
+\begin{itemize}[label={--},noitemsep]
+	\item K odmítne právě tehdy když M odmítne jako LOA
+	\item K přijme, jestliže M přijme $w$ jako LOA
+\end{itemize}
+
+\noindent Sestavíme TS N pro vstup $w$ $<Mw> \# w$ simuluje K na $<Mw> \# w$ přijme, když K odmítne. Pokud K přijme, tak N odmítne a zastaví. Jestliže N nikdy necyklí, pak přijímá rekurzivní jazyky.
+
+\noindent Timto jsme ale vytvořili TS N, který je odlišný od všech uvedených TS a má i jiný jazyk než uvedený.
+
+\noindent Podle předpokladu však víme, že každý REC je C, tudíž TS N musí být mezi všemi TS přijímající jazyk jako LOA. Získali jsme tak jazyk, který je rekurzivní ale není C, což je \textbf{SPOR} s předpokladem.
+
+\clearpage
+\maketitle
+\section{Příklad}
+\subsection*{Řešení}
+Uvažujme Postův korespondenční problém nad abecedou $\Sigma = \{0, 1, 2, 3, 4, 5, 6, 7, 8, 9\}$, pak je možné provést redukci z $PCP$ na $CULMINATE$ mapováním na $KL$ a to následujícím způsobem:
+
+\begin{itemize}[label={},noitemsep]
+	\item Definujeme $PCP = (PS | $ kde tento Postův systém má řešení $)$
+	\item Definujeme $KL = \{KS | $ kde registry X a Y kulminačního linearizátoru po k krocích nabývají stejných hodnot $\}$
+\end{itemize}
+
+\noindent Pak redukce libovolného PS $S =<(\alpha_0, \beta_0), (\alpha_1, \beta_1), \dots (\alpha_n, \beta_n)>$ nad $\Sigma$ přiřadí KL \\$K = <((a_1, b_1), (c_1, d_1), \dots (a_n, b_n), (c_n, d_n))>$ pak:
+
+\begin{itemize}[label={},noitemsep]
+	\item $\varsigma(S)$
+	\item Koeficienty K jsou definovány následovně:
+	\item \begin{itemize}[label={},noitemsep]
+	\item $a_i = 10^{|\alpha_i|}$
+	\item $b_i = \alpha_i$
+	\item $c_i = 10^{|\beta_i|}$
+	\item $d_i = \beta_i$
+\end{itemize}
+\item Pokud však na vstupu bude PS, který nemá řešení, nebo na vstupu nebude ani PS, pak budou koeficienty následující:
+\item \begin{itemize}[label={},noitemsep]
+\item $a_i = 0$
+\item $b_i = 1$
+\item $c_i = 0$
+\item $d_i = 2$
+\end{itemize}
+\end{itemize}
+
+\noindent Jestliže $CULMINATE$ má řešení, pak existuje takové $I = <i_1, \dots, i_n>$, kde $i \geq 1$, že postupnou aplikací dvojic lineárních rovnic $p_{i_1}, p_{i_2}, \dots, p_{i_n}$ ze systému P kulminačního linearizátoru s výše definovanými definovanými konstantami, získáme hodnoty registů $X$ a $Y$ právě tehdy a jen tehdy, když S má řešení.
+
+\clearpage
+\maketitle
+\section{Příklad}
+\subsection*{Řešení}
+
+\begin{enumerate}
+	\item Třída jazyků je přijímána TS (strom) $\Rightarrow$ je přijímána TS:
+
+	      Nejdříve musíme rozšířit abecedu o znak pro oddělovač, kterým bodou na pásce odděleny jednotlivé uzly stromu. Poté převedeme strom na pásku algoritmicky podle BFS. Operace posunu z potomka na pozici $n$ na jeho rodiče bude pak realizována posunem na $n/2$, resp. $(n-1)/2$ pro hlavu na pozici pravého potomka. To, která pozice je pravý nebo levý potomek je třeba zaznamenat na další pásku. Posun na levého či pravého potomka bude realizován posunem hlavy na pozici $2n$, resp $2n + 1$.
+
+	\item Třída jazyků je přijímána TS $\Rightarrow$ je přijímána TS (strom):
+
+	      Provedeme reprezentaci řetězce pouze do levých podstromů. Díky tomu lze strom jednoduše převést na pásku TS a to tak, že potomek následuje za rodičem. Tímto vznikne naprosto shodná páska jako pro TS (strom). Všechny operace budou tedy ekvivalentní jak pro TS, tak pro TS (strom) s tím, že operace přesunu do pravého podstromu (na pravého potomka) je zbytečná.
+\end{enumerate}
+
+Podařilo se nám ukázat ekvivalenci TS a TS (strom). Můžeme předpokládat, že i zde půjde použít problematika HP.
+
+\end{document}
