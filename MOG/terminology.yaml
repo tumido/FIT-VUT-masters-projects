@@ -1,0 +1,587 @@
+Co se stalo 1944: Transformace bakterií pomocí purifikované DNA
+Co se stalo 1953: Model struktury DNA
+Co se stalo 1958: Ustřední dogma molekulární biologie
+Co se stalo 1960: Objev mRNA
+Co se stalo 1966: Vyřešení genetického kódu
+Jaké NEPŘÍMÉ důkazy dokazují uložení genetické informace v DNA:
+  - DNA v chromozomech (proti RNA a proteinech)
+  - množství DNA v somatických buňkách koreluje s počtem sad chromozomů
+  - DNA je stabilnějsí než proteiny
+Které PŘÍMÉ důkazy máme pro uložení genetické informace v DNA:
+  - Transformace u streptokoku (změna virulence)
+  - Analýza bakteriofága T2 (vstupuje jen DNA)
+Jaké jsou vlastnosti struktury DNA:
+  - Replikace pomocí párování komplementárních bází
+  - Spontánní mutabilita v důsledku tautomerie bází
+  - Kódování gen. informace ve formě pořadí bází (sekvence)
+Jaké je složení nukleotidu:
+  - kyselina fosforečná + pentóza + organická báze
+Jaké jsou purinové organické báze:
+  - Adenin
+  - Guanin
+Jaké jsou pyrimidinové organické báze:
+  - Cytozin
+  - Tymin
+  - Uracil
+Jaký je směr polynukleotidového řetězce:
+  - 5' -> 3'
+Jaké jsou trukturní úrovně DNA:
+  - Primární struktura = Polydeoxyribonukleotidový řetězec
+  - Sekundární struktura = Dvoušroubovice DNA
+  - Terciální struktura = Nadšroubovice DNA, superhelix (relaxovaná = kružnice nebo lineární)
+Charakterizuj dsDNA:
+  - Společná osa
+  - Komplementarní řetězce
+  - Tvořená páry bází AT, GC
+  - Chargaffova pravidla
+    - A+G = T+C
+    - A+T != G+C
+  - menší a větší žlábek
+Jaké existují konformace DNA:
+  - A-DNA, B-DNA pravotočivá
+  - Z-DNA levotočivá
+Co způsobuje topoizomeráza I:
+  - Přesouvá zlom před/pod druhý řetězec
+  - Snižuje nadšroubovicové vinutí o 1
+Co způsobuje topoizomeráza II:
+  - Vytváří zlom na obou řetězcích
+  - Snižuje nadšroubovicové vinutí o 2
+jaké jsou typy sekvencí v DNA:
+  - Jedinečná sekvence ...AATGCTGATVTCT...
+  - Repetitivní sekvence ...ATG...ATG..ATG...
+  - Tandemové repetice ...ATGCATGCATGC...
+  - Přímá repetice 5'...ATGC...ATGC...3' (na tomtéž řetězci ve stejném směru)
+  - Obrácená repetice 5'...ATGCGCAT...3' 5'...ATGCGCAT...3' (na druhém řetězci v opačném směru)
+Co jsou to vlásenkové struktury na DNA:
+  - Vytváří se na jednom řetězci DNA v místech obrácených repetic
+  - Vlásenka ...ATCTA_TAGAT...
+  - Vlásenka se smyčkou ...ATCTA_TCCAG_TAGAT...
+Co jsou to křížové struktury na DNA, kde vznikají:
+  - Vzniká tam, kde se na obou řetězcích objeví obrácené repetice ve stejném místě
+  - Vytvoří se vlásenka (s i bez smyčky) na obou řetězcích
+Kdy probíhá denaturace dsDNA a co vznikne:
+  - Teplota tání (poločas denaturace) 69,3°C
+  - Vznik ssDNA, může renaturalizovat, hybridizovat
+Co je to gen:
+  - Infgormační a funkční jendotka
+  - Nese genetickou informaci o
+  - ^ Primární struktuře translačního produktu - Proteinu
+  - ^ Funkční molekule produktu transkripce - tRNA, rRNA, snSRNA
+Co je genetická informace:
+  Informace primárně obsažené v nukleotidové sekvenci DNA
+Co je genetická kód:
+  Systém pravidel, podle kterých jednotlivé kodony určují zařazení aminokyselin do polypeptidu (pořadí kyselin pro tvorbu Proteinu)
+Co je genom:
+  Všechny molekuly DNA živé soustavy, které se vyznačují replikací a dědí se
+Co je to genotyp:
+  Genetické složení organismu repezentovaná souborem alel
+Co je to fenotyp:
+  - Soubor znaků a vlastností, kterými se organismus v určitém prostředí projevuje
+  - interpretace genotypu
+Jaké je značení řetězců dsDNA:
+  - kódující (nepřepisuje je se) 5' -> 3'
+  - antikódující, negativní (transkribuje se na mRNA) 3' -> 5'
+Jaké je ústřední dogma molekulární biologie:
+  Přenos genetické informace je možný pouze z nukleové kyseliny do nukleové kyseliny nebo proteinu
+Jaké existují typy genů:
+  - Strukturní geny -> transkripce na mRNA -> translace na protein
+  - Geny pro funkční typy RNA -> transkripce na tRNA, rRNA, snRNA...
+  - Geny pro regulační oblast -> interakce s proteiny
+Co jsou strukturní geny:
+  - Transkurbuje se na mRNA (kóduje pak polypeptid)
+  - Jednoduché strukturní geny (prokaryota)
+  - Složené strukturní geny (eukaryota), obsahuje introny a exony, podléhá sestřihu
+Co je sestřih:
+  - Posttranskripční úprava složeného genu
+  - Vyštěpí se přepis intronu a zůstanou jen exony spojené do mRNA
+Popiš vlastnosti kodonů, počty:
+  - Určují jaká aminokyselina se má zařadit do polypeptidového řetězce při translaci
+  - Triplet (3 písmena - 3 čtecí rámce)
+  - 64 kodonů celkem
+  - 61 kóduje aminokyselinu
+  - 3 nesmyslné (stop kodony, terminační)
+  - 3 bifunkční (2x terminační/aminokys., 1x inicializační/aminokys.)
+  - Univerální schéma pro všechny živé soustavy
+  - Synonymní kodon kóduje stejnou aminokyselinu
+Jaká je struktura genomu u prokaryot (kde je genetická informace):
+  - Chromozom (nukleotid)
+  - Plazmidy
+Popiš strukturu genomu u eukaryot (kde se nachází DNA):
+  - Soubor chromozomů v jádře (jaderný genom) = nDNA
+  - Mitochondrie (mitochondrionvý genom) = mtDNA
+  - chloroplasty u rostlin (chloroplastový genom) = ctDNA
+  - Plazmidy
+Jaký je počet genů:
+  - Člověk = 25 000
+  - Mitochondrie člověka = 37
+  - Escherichia Coli = 4000
+Jaká je velikost genomu:
+  - Člověk = 3 300 Mbp
+  - Mitochondrie člověka = 16,5 kbp
+  - Escherichia Coli = 4,6 Mbp
+Jaká je přibližná velikost genu u prokaryot:
+  1 gen ~ 1kbp
+Jaká je genetická organizace genomu u prokaryot:
+  - Kompaktní genom s malými mezerami mezi geny
+  - Většina jsou strukturní geny
+  - 10% nekódující DNA
+  - Operonové uspořádání genů
+  - Pořadí genů neí konzervováno
+  - Neplatí u nich paradox hodnoty C
+  - Počet genů je proporciální velikosti genomu
+Charakterizuj plazmidy:
+  - Velikost 1 kb - 1000 kb
+  - Malá, většinou kruhová molekula DNA
+  - Nachází se v cytoplasmě
+Za co odpovídají F-plazmidy:
+  - Fertilitní
+  - Odpovídaní za vznik pilů, které dovolují cytoplasmatických můstků mezi bakteriem -> výměna plasmidů
+Jaké geny nesou R-plazmidy:
+  - Nesou geny zodpovědné za rezistenci vůči antibiotikům
+Jaká je vlastnost Ti-plazmidů:
+  - Nesou geny jejichž produkty vyvolávají nádory u rostlin
+Co jsou Col-plazmidy:
+  - Nesou geny, která dokážou usmrcovat bakterie (antibiotika)
+Co jsou ribozomální plazmidy:
+  - Fixace vzdušného dusíku
+Co je to chromatin a jakou má strukturu:
+  - Genetický materiál eukaryotické buňky
+  - 30% DNA + RNA
+  - 70% proteiny
+  - V interfázi jako chromatinová síť vláken
+  - Při mitóze jako jednotlivé chormozomy
+Co je euchromatin:
+  - Transkirpčně aktivní chromatin
+  - Méně kondenzovaný
+Co je heterochromatin:
+  - Transkripčně neaktivní
+  - Konstitutivní (centromera a telomera)
+  - Fakultativní (dočasně netranskribované geny, zněmy během ontogenetického vývoje)
+Jaké jsou části struktury chormozomu:
+  - Centromera = zajišťuje segregaci chromozonu do dceřiných buněk
+  - Telomera = koncová oblast (zajištuje dokončení replikace lineárního chromozomu)
+  - Ori = počátky replikace
+Co je to nukeozom:
+  - Zabalení dsDNA
+  - korálková forma (histonové jádro obtočené DNA) a spokovníková DNA
+Co je nukleáza:
+  Stěpí spojovníkovou DNA nukleozomu
+Vyjmenuj histony:
+  - H2A, H2B, H3, H4 vytváří histonové jádro (oktamer)
+  - H1 spojuje nukleozomy (tvoří proteinové lešení)
+Co je solenoidová struktura DNA:
+  - Mnoho závitů solenoidu (6 nukleozomů spojené H1)
+Jaké jsou typy genů u eukaryot:
+  - Jedinečné geny = 1 kopie
+  - Tandemové repetice = geny pro rRNA a histony
+  - Genové rodiny = skupiny příbuzných genů
+  - Pseudogeny = inaktivní kopie genů
+  - Rozptýlené genové repetice = kopie genů/rodin
+  - Orfany = geny s neznámou funkcí
+  - Orfony = ojediněle se vyskytující kopie
+  - Mezerníky = sekvence oddělující geny/skupiny
+Kdy byl dokončen projekt analýzy lidského genomu:
+  Human Genome Project, dokončeno 2005
+Jaká je funkce mitochondrií:
+  Tvorba ATP oxidací cukrů a mastných kyselin
+Co kóduje mtDNA:
+  - Kóduje (12S, 16S) rRNA, 22 tRNA...
+Jaké jsou charakteristické rysy replikace dsDNA:
+  - Semikonzervativní (každý z řetězců je celý a v jiné kopii)
+  - Semidsikontinuální (vedocí řetězec a opožďující řetězec 5' -> 3')
+Jaké jsou požadavky pro replikaci NK (co je potřeba):
+  - Templát = matricový řetězec
+  - Primer = 3' konec řetězce s OH skupinou
+  - Enzymy katalizující připojování nukleotidů
+  - Volné nukleotidy
+Co je to ori:
+  Počátek replikace, specifická sekvence na DNA (dnaA box)
+RNA-primer:
+  Začátek od kterého se syntetizuje Ozakiho fragment, syntetizován DNA-primázou
+DNA-polymeráza:
+  Polymeráza I, Polymeráza III u prokaryot, syntetizuje nukleotidy na DNA
+DNA-primáza:
+  Syntetizuje RNA primery na ssDNA
+DNA-helikáza (Protein DnaB):
+  Rozmotává dsDNA a rozděluje ji na ssDNA
+DNA-ligáza:
+  Spojuje mezery v DNA řetězci při replikaci (Ozakiho fragmenty)
+Polymeráza I:
+  Odstraňuje RNA primer a nahrazuje jej DNA
+Polymeráza III:
+  - Přidává nukleotidy k RNA-primeru a na druhém řetězci
+Jaké jsou podjednotky Polymerázy III u prokaryot:
+  - Beta svorka = Stabulizace dvouřetězcové strutury
+  - Gamma = Rozezná RNA-primer a naloží Beta svorku
+  - Alpha = Katalyzuje polymeraci
+SSB proteiny:
+  Vazebný protein pro jednoduchý řetězec
+Protein DnaA:
+  Váže se na začátek replikace a ohybá DNA
+Protein DnaC:
+  Váže se spolu s helikázou na DnaA a vytváří prostor pro DnaB
+Ozakiho fragment:
+  Fragment Syntetizující se na opožďující ssDNA
+Co je to Dvousměrná replikace kružnicové chormozomové DsDNA u prokaryot:
+  Replikace dsDNA v obou směrech, kdy pro každá směr se používá jiný řetězec jako mateřský
+Jaké jsou podjednotky Polymerázy u eukaryot:
+  - Alpha = Syntéza Ozakiho fragmentu
+  - Delta = Syntéza vedoucího řetězce a dokončení opožďujícího
+  - Epsilon = Neznámá funkce
+  - Beta = Syntéza krátkých řetězců při reparaci
+  - Gamma = Syntéza mitochondriální DNA
+Co odstraňuje RNA-primery za Ozakiho fragmentů:
+  - U prokaryot Polymeráza I
+  - Eukaryota = Ribonukleáza
+Telomeráza:
+  - Dovoluje dokončení syntézy nedokončeného 3' konce opožďujícího se řetězce
+  - Přidá další RNA k mateřskému templátu a to dovolí vytvořit nový Ozakiho fragment (polymerázou)
+Co je to Telomerové opakování:
+  - Při každém dělení je telomera o kousek kratší až jsou chromozomy defektní
+  - Po určitém počtu dělení dojde k zastavení tvorby Telomerázy, takže buňka už není dál schopná se dělit
+Jak funguje replikace DNA mechanismem otáčející se kružnice:
+  - Z kruhového templátu se v místě ori začen syntetizovat nový ssDNA (jako vedoucí)
+  - Ten nahrazuje sebe sama  a vzniká volný konec
+  - Může se točit do nekonečna, vzniká tak repetice celého kruhu
+Co je transkripce DNA:
+  Přepis genetické informace z DNA do RNA
+Co je RNA-polymeráza, Transktiptáza:
+  Katalyzuje transkripci
+Jaký je směr Transkripce:
+  5' -> 3'
+Jaký je směr Translace:
+  5' -> 3'
+Jak funguje Transkripce u prokaryot:
+  Spřažená s Translací - ten samý řetězec co se transkribuje, je zároveň překládán
+Jak vypadá Prokaryotní mRNA:
+  - PPP - 5' N kódujících sekvencí, každá pro nějaký protein + nekodující oddělovače - 3'
+  - Polygenní mRNA
+Jak vypadá Eukaryotní mRNA:
+  - čepička - 5' nekodující - jedna kující sekvence pro jeden protein - nekodující - 3'
+  - Monogenní mRNA
+Na jakém řetězci probíhá Transkripce:
+  Může probíhat na obou, na každém jsou jiné geny (v opačném směru), na daném úseku se většinou používá pouze jeden řetězec
+Jaké typy RNA vznikají při Transkripci DNA:
+  - Z kódující oblasti vzniká mRNA
+  - Z nekódující = rRNA, tRNA...
+Jak vypadá prokaryotická RNA-polymeráza:
+  - Beta podjednotka se váže nukleotidy
+  - Alpha udržuje polymerázu stabilní
+  - Beta' Váže se na matrici
+  - Sigma Váže se k promotoru
+Co je to Promotor:
+  Váže RNA-Polymerázu u Transkripce a je před začátkem transkripční jednotky
+Jak vypadá Transkripční jednotka u prokaryot:
+  - Před ní je promotor
+  - Začíná vedoucí sekvencí (ta se pak nepřekládá)
+  - Pak je následují strukturní geny
+  - Končí Terminátorem (nepřekládá se)
+Jak vypadá prokaryotický Promotor:
+  - -10 Pribnowuv box
+  - -35 další box
+Co je to Box u promotoru:
+  Krátká sekvence DNA o stejné funkci
+Jak probíhá Transkripce u prokaryot:
+  - Nejdřív se Sigma faktor RNA-polymerázi naváže na promotor
+  - To otevře dsDNA (denaturace)
+  - RNA polymeráza se posunuje -> 3' a začne Transkripci a zároveň se uvolňuje sigma faktor z Polymerázy
+  -  Za ní se dsDNA zase spojuje
+  - Jakmile Polymeráza narazí na Terminátor, uvolňuje se a končí
+Jaké existují Terminátory u prokaryot:
+  Je to Vlásenka se smyčkou, může být závislá na Rhó-Faktoru
+Jak fungují terminátory u Transkripce:
+  Právě přepsaná mRNA se složí (vyrobí vlásenku), RNA polymeráza se zastaví a uvolní se
+Co je to Rho-Faktor u Transkripce:
+  Uvolňuje RNA-polymerázu na terminátoru, putuje po matricovém DNA a jakmile dostihne RNA-Polymerázu, ví, že stojí na Terminátoru.
+Jak vypadá transkripční jednotka pro rRNA:
+  Obsahuje geny pro 16S-rRNA, tRNA 2x, 23S-rRNA, 5S-rRNA
+Jak vypadá transkripční jednotka pro rRNA:
+  Vytváří 4x tRNA
+Jak vypadá eukaryotický Promotor:
+  - -34 TATA bex
+  - další boxy až -140
+Jaké jsou různé transkriptázy:
+  - RNA-polymeráza u prokaryot
+  - RNA-polymeráza I, II, III u eukaryot
+Jaké jsou posttranskripční úpravy u eukaryot:
+  - na 5' se pčipojuje čepička
+  - na 3' dochází k polyadenylaci
+  - Sestřih
+  - Editace
+Co je to sestřih:
+  Proces při němž jsou odstraňovány introny, probíhá buď ve spliceozomu a nebo samosestřihem
+Co jsou to konzervativní sekvence:
+  Sekvence rozpozmatelné a důležité pro sestřih. Začátek, konec a +- 30 před koncem
+Jak probíhá sestřih (Transesterifikace):
+  - Nejdřív se OH skupina přenese z "-30" na začátek (na exon) a začátek intronu se odpojí
+  - Poté se OH skupina naváze z konce jednoho exponu na začátek druhého od kterého se odpojí intron a zustane na něm OH skupina
+Co je spliceozom:
+  - Provádí sestřih
+  - Najde začátek, konec
+  - Poskládá RNA a přiblíží konce exponů
+Jak probíhá regulace sestřihu:
+  - Represor se váže na část intronu (není tak dostupný a nemůže se odstranit)
+  - Aktivátor se váže za intron a pobídne sestřih
+Jak se nazývá RNA schopná samosestřihu:
+  Rybozym
+Jak probíhá samosestřih:
+  Existují dvě skupiny intronů a podle toho se to samo skláda (tvar noha a ruka). Sestřih pak proběhne transesterifikací normálně.
+Co je to Bimolekulární sestřih:
+  Sestřih která proběhne zemi dvěma různými transkripty (vezme se gen z jiného řetězce), u prvoků
+Co je to Twintron:
+  To je intron uvnitř jiného intronu
+Jaký je význam Intronů:
+  - Reguluje/snižuje rychlost Transkripce (genové exprese)
+  - Pozůstatek evoluce
+  - Dovolují alternativní sestřih - z jednoho genu je víc produktů
+Co je to Editace:
+  Je to změna nukleotidu v transkriptu, buď inzerce/delece/substituce
+Proč probíhá Editace:
+  Reguluje genovou expresi (pozůstatek po prapůvodních boňkách které katalizovaly reakce pomocí RNA, ne proteiny)
+Co je to Translace:
+  Překlad mRNA na proteiny za pomoci tRNA, ribozomů, aminokyselin atd.
+Co je to Ribosom:
+  -Skládá se z proteinů a je to jednotka, která provádí Translaci
+  - Má velkou a malou podjednotku
+  - Na malé podjednotce jsou 3 důležité místa
+  - "E" exit tRNA (místo, kde se odpojuje tRNA zbavená aminokyseliny)
+  - "P" místo, kde se máže aminokyselina do řetezce
+  - "A" místo kde se tRNA připojuje na mRNA
+  - Práce s aminolys. probíhý ve velké podjednotce a malá vede (E, P, A mista)
+Jak vypadá molekula tRNA:
+  Vypadá jako jetelový list, dole je Antikodon, 3' konec je delší (ACC) a váže aminokyselinu
+Co je to kolísavé párování antikodonu:
+  Na 5' konci antikodonu (v pravo) může docházet k tomu, že tato (první) báze bude vázat jiný kodon, takže jedna tRNA je schopná navázat dva kodony
+Co jsou to sytnonimní kodony:
+  Různé kodony, na které se váže ta samá tRNA se stejnou aminokyselinou. Různé kodony, stejný produkt.
+Jaké jsou dvě etapy Translace:
+  - Mimoribozomová, kdy se na tRNA připojuje aminokyselina
+  - Ribozomová, kdy jsou řazeny aminokyesliny podle sledu kodonů
+Jak funguje inicializace translace v Ribosomu:
+  - Malá podjednotka a koplex nesouci odpovídající tRNA se azčnou vázat na Iniciační kodon
+  - Uskládá se to tak, že je tRNA navázaná a je to v P místě malé podjednotky
+  - Jakmile je tohle na místě, připojí se i velká podjednotka
+  - Odpojují se iniciační komplexy (IF), které to všechno zpiskaly
+Jak funguje elongace u Transkripce v Ribosomu:
+  - Elongační Faktory donesou tRNA do A místa
+  - Aminokyselina na předchozím tRNA se odpojí a spojí se s Aminokyselinou na přineseném tRNA
+  - Ribosom se posune tak, ze tRNA v A místě, je najednou v P místě a ta v P se přesune do E a vypadává
+Jak funguje terminace Transkripce:
+  - Terminační kodon dorazí na A místo
+  - Na něj čeká RF uvolňovací faktor, která tam skočí
+  - RF nemá aminokyselinu, takže se jen z tRNA v P místě uvolní  a polypeptid je samostatný
+Co se stane, když mRNA není úplná (chybí konec), jak probíhá Translace:
+  - Ribosom se zastaví, když dojde na konec mRNA a nemá kam dál
+  - Na to se v A místě naváže tmRNA, která pak už přidává jen tag, že je to špatná řetězec a pak má terminační kodon
+Jak se zpracovává bifunkční kodon:
+  - expistuje pto něj speciální tRNA, která se váže i na vlásenku za tímto kodonem, podle toho se pozná správná funkce
+  - tato vlásenka je za STOP kodomen u  savců, u bakterií pořád v traslatované oblasti
+Jak funguje inicializace translace v Ribosomu u eukaryot:
+  - Na čepičku a 5' konec se naváže malá podjednotka a pokybuje se k iniciačnímu kodonu. TAm se k ni připojí velká podjednotka.
+  - Zárověň se jiný inic faktor váže na konec 3' (poly-A)
+  - Takže se translatuje vždy pouze úplná mRNA
+Co je to signální sekvence proteinu:
+  - Pozitivní doména
+  - Hydrofobní doména
+  - Oblast štěpení
+  - Zbytek proteinu
+Co je to Preprotein:
+  Polypeptidový řetězec, který má stále signální peptid na N-konci
+Jak probíhá transport/translokace proteinu membránou do endoplazmy:
+  - Translokačním kanálem, která zachytí signální sekvenci
+  - Pustí zbytek proteinu a signální peptidáza se v místě štěpení oddělí
+Jak probíhá začlenění transmembránového proteinu:
+  - podobně jako tranlokace
+  - Translokační kanál, zachytí iniciační sekvenci
+  - Portahuje protein dokud nenarazí na stop sekvenci, tu si taky chytí
+  - pak se od te iniciační protein oddělí a zůstane chycen pouze iniciační (čouhá na obě strany)
+Jak vzniká funkční protein po translaci:
+  - Polypeptidový řetězec se balí
+  - Váže na sebe kofaktory a modifikuje se
+  - Váže si další proteinové podjednotky
+Co je to kotranslační sbalování proteinu:
+  Fáze sbnalování proteinu při translaci, kdy N i C oblast se sbalují uz při translaci a C se dobalí hned po konci translace
+Co jsou to chaperony a jak fungují:
+  - Pokud protein není správně sbalený po translaci, chaperon se mu snaží pomoc.
+  - Zároveň se může například chaperon vázat aby předešel nesprávnému sbalení.
+  - Pokud protein není ani za pomoci chaperonu správně sbalený, je odbourán (proteozom)
+Co je to proteinový sestřih:
+  - Podobně jkou sestřih RNA, kdy odstraňují introny
+  - Jde o odstranění inteinů
+  - U řas, kvasinek, bakterií...
+  - Katalyzováno samotným inteinem (autokatalycky)
+Co je to proteaozom:
+  Odbourává nesprávně složené proteiny
+Co je ubiqutin:
+  Označuje špatně složený protein, který má být degradován
+Co je to Transkipční kontrola:
+  Kontrola genové exprese, která hlídá kde a jak často je gen transkribován
+Co je to Posttranskripční, střihová kontrola:
+  Kontrola genové exprese, která hlídá jak je transkript sestřižen
+Co je to Kontrola transportu RNA:
+  Kontrola genové exprese, která hlídá která RNA je transportována z jádra
+Co je to Translační kontrola:
+  Kontrola genové exprese, která vybírá mRNA k překladu na ribozomech
+Co je to Degradace mRNA:
+  Kontrola genové exprese, která selektivně destabilizuje určitou mRNA v cytoplazmě
+Co je to Kontrola posttranskripční, transport, proteinové aktivity:
+  Kontrola genové exprese, která selektivně aktivuje a deaktivuje poteiny
+Jak funguje Transkipční kontrola:
+  - Váže se represor na operátor DNA
+  - Vytváří se obhyb na DNA tím se znepřístupní RNA-Polymeráze
+Jak se jmenuje represor lakotózového operonu a kam se váže:
+  Represor LacI se váže před promotor a na operátor
+Jak probíhá transkripční kontrola u prokaryot:
+  - Regulační proteiny se vážou na promotor/operátor
+  - Molekulární efektor se váže na regulační protein
+Klasifikuj regulátory gen exprese:
+  - regulační proteiny (vážou se na regulační oblast)
+  - ^ pozitivní (navozují transkripci) vs negativní (zastavují)
+  - alosterické efektory (vážou se na regulační proteiny)
+  - ^ pozitivní (umožňují vazbu regulač. proteinu s reg. oblastí) vs negativní (zabraňují)
+Jak probíhá negativní kontrola transkripce:
+  - Regulační protein je represor
+  - aktivní represor se váže na promotor
+  - deaktivován induktorem
+  - aktivován korepresorem
+Jak probíhá pozitivní kontrola transkripce:
+  - Regulační protein je aktivátor
+  - funkční aktivátor se váže na regulační oblast
+  - deaktivován inhibitorem
+  - aktivován induktorem
+Čím jsou indukovatelné všchny enzymy:
+  Laktózou - viz Laktózový operon
+Jaká je klasifikace regulátorů exprese podle počtu genů:
+  - Specifický regulátor = reguluje expresi 1 nebo málo genů (laktózový represor)
+  - Globální regulátor = větší počet, aktivuje se signálem (CAP, cAMP)
+Co je to regulon:
+  Skupina genů nebo operonů regulovaná stejným pregulačním proteinem
+Co je to operon:
+  Transkripční jednotka DNA ( regulační oblast + promotory + operátor + transkribovaná část + terminátor)
+Co je to translační kontrola a na jaké úrovni probíhá:
+  - Regulace translace pomocí kontroly RNA
+  - Kontrola rychlosti degradace mRNA
+  - Úprava mRNA do translatovatelné podoby
+  - Kotrola translace regulačními proteiny
+Jak můžou působit regulační proteiny na stabilitu mRNA:
+  U translace, snižuje nebo zvyšuje degradaci mRNA
+Čím je aktivována translace chloroplastové mRNA:
+  Světlem, které aktivuje vazebný protein, který znění strukturu mRNA (rozplete vlásenku)
+Jak se jmenuje mechanismis umlčování genů, které je indukováno přítomností dsRNA:
+  RNA interference
+Jak vznikne dsRNA:
+  - Při transkripci se z kůdující ssDNA vytváří mRNA a zároven na antikódujícím řetězci vznikne antisence RNA (regulační)
+  - tyto vzniklé RNA se spojí do dsRNA a tím pádem se mRNA nemůže překládat
+  - nebo z genové sekvence, která obsahuje dvě kopie požadované sekvence v opačném pořadí a vytvoří se vlásenka
+Jak funguje RNA interference:
+  - dsRNA je rozdělena Dicerem na krátké úseky
+  - tyto jsou pak jakési částici rezpleteny
+  - vzniká umlčovací komplec indukovaný RNA = RISC
+  - ten obsahuje právě tu aktikódující část RNA
+  - pak, pokud se dá tahle část spojit s mRNA je mRNA rozštěpena (Slicer)
+Co je to miRNA (micro):
+  - Krátké jednořetězcové molekuly RNA, které regulují translaci
+  - doplň!!
+Jaké exitují typy transkripční aktivity u eukaryot:
+  - Bazální transkripce (minimální úroveň)
+  - Konstitutivní (bazální a konstitutivní transkripční faktory) umožňuje různou rychlost rranskripce pro různé geny
+  - Indukovaná (i specifické transkripční faktory) ovlivněné podněty z vnějšího prostředí
+Co jsou to specifické transkripční faktory:
+  buněčné a časově specifické regulační protejny dovolující transkripční regulaci v závislosti na vnějším prostředí
+Jaké jsou podmínky pro zahájení transkripce u eukaryot:
+  - RNA polymeráza musí být v aktivním stavu
+  - faktory se vážou na promotor a zesilovače transkripce
+  - vzálemná interakce mezi transkripčními faktory umožňuje interakci promotoru a zesilovače
+Jak vypadá eukariotický promotor pro RNA-polymerázu II:
+  2 upstream elementy + TATA + initiátor box + 0 a gen
+Co je to Mutace:
+  Dědičná změna genotypu, jejíž molekulární podstatou je substituce nukleotidů (popř. delece, inzerce a inverze). Mění primární strukturu nukleové kyseliny
+Jaký je směr mutací:
+  - původní, přímá mutace
+  - zpětná mutace (částečná, uplná obnova funkce)
+Klasifikace mutací podle úrovně na které působí:
+  - Genové (bodové) - změna bází na úrovni genů
+  - Chromozomové - změna sekvence na úrovni chomozomu
+  - Genomové mutace - změna počtu chromozomů/plazmidů
+Klasifikace mutací podle typu zasažené buňky:
+  - Genetické/gametické mutace - vznikají v gametách a přenáší se na potomstvo
+  - Somatické - v som. buňkách
+Klasifikace mutací podle vlivu na životaschopnost organismu:
+  - Vitální mutace - organismus přežije
+  - Letální - nepřežije
+  - Podmíněné letální - přežije ale jen za učitých podmínek
+Klasifikace mutací podle vzniku:
+  - Spontánní (bez vnější příčiny)
+  - Indukované (vystavené mutagenům)
+Co jsou to tautomerní formy bází:
+  Jiná forma báze, která při replikaci dovolí vazbu jinačí komplementární báze - následně se v duhé generaci objeví mutantní DNA
+K čemu vede posunová mutace:
+  K posunu čtecího rámce pro translaci. Proběhne inzercí/delecí
+Co je to supresorová mutace:
+  - Mutace, která částečne nebo úplně ruší účinek jiné mutace - probíhá v jiném místě než původní mutace
+  - intragenová, intergenová
+Co je to intragenová supresorová mutace:
+  - inzercí nebo delecí se vrátí původní čtecí rámec
+  - mutace kodonu na stop -> další zněma v tom samém kodonu na jiném místě zase obnoví funkci
+Co je to intergenová supresorová mutace:
+  - mutace kodonu na nesmyslný (stop) který předčasně ukončí translaci
+  - mutace genu pro tRNA, která změní antikodon, tak, že váže i tento kodon a je obnovena funkce
+Jaké jsou způsoby opravy mutačně poškozené DNA:
+  - přímá (foto reaktivace, dealkylace)
+  - nepřímá
+  - inducibilní (SOS-odpověď)
+Co je to fotoreaktivace:
+  DNA obsahuej dimer, který je fotolyázou rozpojen za přístupu světla
+Co je to fotolyáza:
+  Katalyzuje fotoreaktivaci a za přístupu světla rozděluje dimer
+Jak funguje bázová excizní oprava:
+  Abnormální báze v DNA se rozpozné specifickou glykozylázou a vyštěpí se
+Co je to metylace DNA:
+  Připojení metylů na molekuly DNA jejich propagace při replikaci, slouží pro reparaci na dlouhé vzdálenosti
+Jak funguje reparace na dlouhé vzdálenosti:
+  - Na DNA je mismatch, to je rozpoznané MutA, která vytvoří smyčku na DNA k nejbližšímu metylu
+  - Celý chybný úsek ve smyčce helikázou
+  - Dosyntetizována chbějící část polymerázou
+Co je to Rekombinace:
+  Proces při kterém vzniká nová kombinace genů
+Jak funguje rekombinace:
+  - Homologicke dsDNA (+ ssDNA) se náhodně zlomí a překříží
+  - Napojí se na ten druhý řetězec (Holydayouva struktura)
+  - Bod překřížení se pak posouvá a může se znovu křížit např.
+Co je to Hollidayovo spojení:
+  Stav kdy jsou spojené dvě molekuly dsDNA spolu do kříže pomocí jednoho ssDNA (druhýž je napojený normálně)
+Jak se rozkládá Hollidayovo spojení:
+  - Rozpojením řetězce tak, že
+  - buď dojde k výměně pouze kousku - napojí se ten původní k dsDNA patřící řetězec
+  - nebo se napojí ten druhy a vlastne část dsDNA je z jednoho a druhý konec je původně z jiného
+  - následuje reparace ve vyměněné oblasti
+Jak se začleňuje DNa bakteriofág do Coli:
+  Vytvoří posunutý zlom a vecpe svou DNA dovnitř
+Co jsou to transpozony:
+  - Pravidelná součást genomu (až 50%)
+  - navozují mutace
+  - zodpovědné za přestavbu chromozomů, plazmidů
+Jak probíhá transpozice:
+  - Transpozony z pravidla zůstávají i v původním (donorovém) místě a kopírují se
+  - v místě inzerce zdvojují sekvence DNa - na obou stranách je tedy přímá repetice
+  - inzercí transpozonu je gen inaktivován
+  - excizí (odstraněním) zase aktivován
+Jaké jsou typy transpozonů:
+  - DNA transpozoby (cut and paste, replikativní)
+  - Retrotranspozony (retroviry)
+Co jsou to retrotranspozony:
+  Běhenm transkpozice se transkripcí sekvence vytváří RNA, tak se pak reverzní transkripcí prevede zpět na DNA a to ze začleňuje do nového místa
+Co je to genové inženýrství:
+  Vytváření pozměněných či nových genů a jejich zavádění od organismů s cílem rekonstruovat jejich genetickou výbavu
+Jaké je využití genového inženýrství:
+  - příprava látek využitelných v lékařství, zemědělství
+  - nové vlastnosti enzymů, protilátek
+  - pozměňování vlastností organismů
+  - genová terapie
+Transgenní rostliny:
+  - rezistence k virům (tabák, rajčata)
+  - k hmyzu (bt rostliny - kukuřice, tabák brambor)
+  - proti herbicidům
+Co má bt-kukuřice za speciální geny:
+  - odolnost proti hmyzu
+  - vůči herbicidůmsg-proti antibiotiku amplicinu
