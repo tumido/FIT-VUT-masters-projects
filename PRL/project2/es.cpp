@@ -1,7 +1,7 @@
 /**
  * @file es.cpp
  * @author Tomas Coufal (xcoufa09)
- * @brief Paralell Enumeration Sort
+ * @brief Paralel Enumeration Sort
  */
 #include <mpi.h>
 #include <iostream>
@@ -47,7 +47,7 @@ int main(int argc, char *argv[]) {
   // Master opens input file
   if (id == n) {
     inputfile.open("numbers", ios::in);
-    if (!inputfile.good()) eprintf("Input file ended unexpectadly.");
+    if (!inputfile.good()) eprintf("Input file ended unexpectedly.");
   }
 
   // Distribute values and compare them
@@ -55,7 +55,7 @@ int main(int argc, char *argv[]) {
     if (id == n) {
       // Master reads a value and distributes it
       x = inputfile.get();
-      if (!inputfile.good()) {eprintf("Input file ended unexpectadly."); break;}
+      if (!inputfile.good()) {eprintf("Input file ended unexpectedly."); break;}
       iprintf(x, i == n-1);
       MPI_Send(&x, 1, MPI_INT, i, X_TAG, MPI_COMM_WORLD);
       MPI_Send(&x, 1, MPI_INT, 0, Y_TAG, MPI_COMM_WORLD);
