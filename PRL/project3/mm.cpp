@@ -20,30 +20,62 @@ using namespace std;
 #define UNSET -1
 #define eprintf(msg) fprintf (stderr, "\x1B[31m%s\033[0m\n", msg)
 
+/**
+ * Get dimension stated on the first line of a file
+ * @param in    file stream from where the line should be retrieved
+ * @param value destination, where the dimension should be stored
+ */
 void parse_first_line(fstream * in, int * value) {
 	string line;
 	getline(*in, line);
 	istringstream(line) >> *value;
 }
 
-void fill_inputB(fstream * in, int id, int items, queue<int> * q) {
+/**
+ * Loop through a file vertically (by columns)
+ *
+ * Read file line by line and if the column number matches processor ID,
+ * store the cell value in its queue
+ * @param in      file stream to read and parse
+ * @param id      processor ID
+ * @param columns amount of items in a row
+ * @param q       processor's input queue
+ */
+void fill_inputB(fstream * in, int id, int columns, queue<int> * q) {
   string line;
   int val;
+  // Loop by lines
   while (getline(*in, line)) {
     istringstream l(line);
-    for (int i=0; i < items; i++) {
+    // Loop the items while counting columns
+    for (int i=0; i < columns; i++) {
       l >> val;
       if (id != i) continue;
+      // Store the value
       q->push(val);
       break;
     }
   }
 }
-void fill_inputA(fstream * in, int id, int items, queue<int> * q) {
+
+/**
+ * Loop through a file by lines (rows)
+ *
+ * Read file line by line and store the cell values inside the
+ * appropriate processor
+ * @param in      file stream to parse
+ * @param id      processor ID
+ * @param columns amount of items on a row (to calculate correct ID matching)
+ * @param q       processor's input queue
+ */
+void fill_inputA(fstream * in, int id, int columns, queue<int> * q) {
   string line;
   int val, i = 0;
-  while (getline(*in, line)){
-    if (id != i*items) {i++; continue;}
+  // Loop by lines
+  while (getline(*in, line)) {
+    // Skip line if it's not useful for this processor
+    if (id != i*columns) {i++; continue;}
+    // Parse values and store them
     istringstream l(line);
     while (l >> val){
       q->push(val);
@@ -52,6 +84,9 @@ void fill_inputA(fstream * in, int id, int items, queue<int> * q) {
   }
 }
 
+/**
+ * Mash Multiplication
+ */
 int main(int argc, char *argv[]) {
   int processes, id, bus_target_id, n;
   MPI_Status stat;
@@ -83,18 +118,20 @@ int main(int argc, char *argv[]) {
   // Get dimensions
 	parse_first_line(&matA, &rows);
 	parse_first_line(&matB, &columns);
+
+  // Determine position of current processor
   bool first_row = id < columns;
 	bool first_col = id % columns == 0;
   bool last_row = id >= columns*(rows-1);
 	bool last_col = id % columns == columns-1;
 
-  // Load data on first row and column
+  // Load data on first row and column processors
   if (first_col) fill_inputA(&matA, id, columns, &inputA);
   if (first_row) fill_inputB(&matB, id, columns, &inputB);
 	matA.close();
 	matB.close();
 
-  // Multiply
+  // Multiply matrices
   for (int i=0; i< columns+rows; i++) {
     // Receive input
     if (first_row) {b = inputB.front(); inputB.pop();}
