@@ -23,12 +23,14 @@ using namespace std;
 /**
  * Get dimension stated on the first line of a file
  * @param in    file stream from where the line should be retrieved
- * @param value destination, where the dimension should be stored
+ * @return      destination, where the dimension should be stored
  */
-void parse_first_line(fstream * in, int * value) {
+int parse_first_line(fstream * in) {
 	string line;
+	int value;
 	getline(*in, line);
-	istringstream(line) >> *value;
+	istringstream(line) >> value;
+	return value;
 }
 
 /**
@@ -103,12 +105,6 @@ int main(int argc, char *argv[]) {
   MPI_Comm_size(MPI_COMM_WORLD, &n);
   MPI_Comm_rank(MPI_COMM_WORLD, &id);
 
-  // Enable metrics
-  #ifdef METRICS
-  MPI_Barrier(MPI_COMM_WORLD);
-  double sort_time = -(MPI_Wtime());
-  #endif
-
 	// Open input files
 	matA.open(MAT_A, ios::in);
 	if (!matA.good()) eprintf("Input file ended unexpectedly.");
@@ -116,8 +112,8 @@ int main(int argc, char *argv[]) {
 	if (!matB.good()) eprintf("Input file ended unexpectedly.");
 
   // Get dimensions
-	parse_first_line(&matA, &rows);
-	parse_first_line(&matB, &columns);
+	rows = parse_first_line(&matA);
+	columns = parse_first_line(&matB);
 
   // Determine position of current processor
   bool first_row = id < columns;
@@ -130,6 +126,12 @@ int main(int argc, char *argv[]) {
   if (first_row) fill_inputB(&matB, id, columns, &inputB);
 	matA.close();
 	matB.close();
+
+  // Enable metrics
+  #ifdef METRICS
+  MPI_Barrier(MPI_COMM_WORLD);
+  double mm_time = -(MPI_Wtime());
+  #endif
 
   // Multiply matrices
   for (int i=0; i< columns+rows; i++) {
@@ -147,6 +149,11 @@ int main(int argc, char *argv[]) {
     if (!last_col) MPI_Send(&a, 1, MPI_INT, id+1, TAG_A, MPI_COMM_WORLD);
   }
 
+	// Measure time when the mm is done
+  #ifdef METRICS
+  MPI_Barrier(MPI_COMM_WORLD);
+  mm_time += MPI_Wtime();
+	#else
   // Synchronize the output by proc0
   if (id != 0)
     // All processors except proc0 sends its C value
@@ -162,17 +169,13 @@ int main(int argc, char *argv[]) {
     // Trailing eol
     cout << endl;
   }
-
-	// Measure time when the mm is done
-  #ifdef METRICS
-  sort_time += MPI_Wtime();
   #endif
 
   MPI_Finalize();
 
   // Print Metrics
   #ifdef METRICS
-  if (id == n) cout << sort_time << endl;
+  if (id == 0) cout << mm_time << endl;
   #endif
   return 0;
 }
