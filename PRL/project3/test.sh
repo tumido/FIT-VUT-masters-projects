@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Uncomment if a time measurement should be run
-METRICS_TEST=true
+# METRICS_TEST=true
 
 # If running on Fedora, export PATH
 cat /etc/*-release | grep -q "fedora" && PATH=$PATH:/usr/lib64/openmpi/bin/
