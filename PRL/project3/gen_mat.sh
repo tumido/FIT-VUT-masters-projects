@@ -6,10 +6,10 @@
 echo $2 > $1
 if [[ $1 == 'mat1' ]]; then
   rows=$2
-  cols=$(($RANDOM % 10 + 2))
+  cols=$(($RANDOM % 9 + 2))
 else # mat2
   cols=$2
-  rows=$(($RANDOM % 10 + 2))
+  rows=$(($RANDOM % 9 + 2))
 fi
 
 for (( i = 0; i < $rows; i++ )); do
