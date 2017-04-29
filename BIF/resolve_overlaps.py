@@ -1,101 +1,146 @@
 #!/usr/bin/env python3
 import sys
-from collections import namedtuple
-from pprint import pprint
+from collections import namedtuple, defaultdict
+from operator import attrgetter as get
 from copy import copy
 from datetime import date
 
-# Create an object for each entry in the file
-Feature = namedtuple(
-    'Feature',
-    ['fid', 'seq_id', 'source', 'type', 'start',
-     'end', 'score', 'strand', 'phase']
-)
+Sequence = namedtuple('Sequence', ['score', 'start', 'end', 'nodes'])
+
+class Feature:
+    def __init__(self, fid, line, start, end, score):
+        self.fid = fid
+        self.line = line
+        self.start = start
+        self.end = end
+        self.score = score
+        self.succ = set()
+    def make_succ(self, node):
+        # Add node as successor if it meets requirements
+        if not node.start > self.end:
+            # If the node doesn't start after this Feature ends, skip it
+            return
+        if self.succ and node.start > min(self.succ, key=get('end')).end:
+            # If the node starts after one of successors ends, skip as well
+            return
+        if any(node.score < n.score for n in self.succ if node.end >= n.end):
+            # If node ends after any current successor and has worse score,
+            # skip it
+            return
+        # Node is a successor, we're interested in
+
+        # If the node is ending before any of current successor, check if it's
+        # score is higher
+        self.succ = set(s for s in self.succ if s.end < node.end or node.score <= s.score)
+
+        # Node proved as a useful successor, adding it to set
+        self.succ.add(node)
 
 
 def get_line(input_file):
     """Feature generator parsing input file."""
     with open(input_file, 'r') as f:
+        i = 0
         for line in f:
+            i+=1
+            if i >= 1500:
+                break
             # Skip empty or commented lines
             if len(line) <= 1 or line[0] == '#':
                 continue
 
-            line = line.split()
+            l = line.split()
             # Create an unique ID
-            fid = "{0} {1} {2}".format(line[0], line[2], line[6])
-
-            # Convert 'start', 'end' and 'score' to integer
-            line[3:6] = list(map(int, line[3:6]))
+            fid = "{0} {1} {2}".format(l[0], l[2], l[6])
 
             # Get me the line!
-            yield Feature(fid, *line)
+            print("Processing line: %d" % i, end='\r')
+            yield fid, Feature(fid, line, int(l[3]), int(l[4]), int(l[5]))
 
 
-def is_overlap(sequence, feature):
-    # print(sequence)
-    # Loop through sequence and find out if there's any overlapping feature
-    for f in sequence:
-        # If the later starting one is before the end of the other, it's wrong
-        if max(f.start, feature.start) <= min(f.end, feature.end):
+def exists_better(route, all_routes):
+    for r in all_routes:
+        if route.start <= r.start and r.end <= route.start and route.score < r.score:
             return True
     return False
 
-
-def optimize(sequences, f):
-    better_exists = False
-    worse_lst = set()
-    for s in filter(lambda x: len(x) == 1, sequences):
-        s = next(iter(s))
-        # Find a shorter Feature in the same region which is better than 'f'
-        if s.start >= f.start and s.end <= f.end and f.score < s.score:
-            better_exists = True
-        # Find a longer Feature in the same region which is worse than 'f'
-        if s.start <= f.start and s.end >= f.end and f.score > s.score:
-            worse_lst.add(s)
-
-    return better_exists, worse_lst
+def collect_worse(route, all_routes):
+    to_remove = set()
+    for r in all_routes:
+        if r.start <= route.start and route.end <= r.end and route.score > r.score:
+            to_remove.add(r)
+    all_routes.difference_update(to_remove)
 
 
-def build_sequences(input_file):
-    seqs = dict()
-    i = 0
-    # Process each Feature in input file
-    for f in get_line(input_file):
-        i += 1
-        # If the Feature is first of its type, add a new key
-        if f.fid not in seqs.keys():
-            seqs[f.fid] = set()
-
-        stat = " ".join("{0}: {1}".format(t, len(s)) for t, s in seqs.items())
-        print("Item: {0:10} {1}".format(i, stat), end='\r')
-        # Skip Features which are longer and have a worse score than already
-        # listed ones
-        is_worse, substitute = optimize(seqs[f.fid], f)
-        if is_worse:
-            continue
-        for to_del in substitute:
-            seqs[f.fid] = set(s for s in seqs[f.fid] if to_del not in s)
-
-        # Find already existent seqs where's no overlap
-        no_overlaps = filter(lambda x: not is_overlap(x, f), seqs[f.fid])
-        # no_overlaps = filter(lambda x: not [y for y in no_overlaps if x.issubset(y)], no_overlaps)
-        elongated = map(lambda x: frozenset([*x, f]), no_overlaps)
-
-        # Join all the seqs for this type and the ones without overlap
-        # (cloned + new Feature added)
-        seqs[f.fid].update(set(elongated))
-
-        # Add the fragment itself
-        seqs[f.fid].add(frozenset([f]))
-        if i > 500:
-            break
-    print()
-    return seqs
+def connect_nodes(nodes):
+    best_node = None
+    for node in nodes:
+        # Find the valid successors
+        [node.make_succ(n) for n in nodes]
+        # Keep track of the best score
+        if not best_node or node.score > best_node.score:
+            best_node = Sequence(node.score, node.start, node.end, (node,))
+    return best_node
 
 
-def best_score(seqs):
-    return max(seqs, key=lambda s: sum(x.score for x in s))
+def find_routes(input_file):
+    graph = defaultdict(set)
+    best_routes = defaultdict(tuple)
+
+    # Init Graph nodes (Features)
+    [graph[t].add(f) for t, f in get_line(input_file)]
+
+    # Loop each strand type separately
+    for t, nodes in graph.items():
+        # Place the node into the graph
+        # best_routes[t] = connect_nodes(nodes)
+        for node in nodes:
+            # Find the valid successors
+            [node.make_succ(n) for n in nodes]
+            # Keep track of the best score
+            if not best_routes[t] or node.score > best_routes[t].score:
+                best_routes[t] = Sequence(node.score, node.start, node.end, (node,))
+        # Find proper starting places
+        start_points = set()
+        for node in nodes:
+            for n in nodes:
+                if node in n.succ:
+                    break
+            else:
+                start_points.add(node)
+
+        # Start the search from nodes with no predecessors
+        for p in start_points:
+            # Find the best route
+            possible_routes = set(
+                Sequence(p.score+s.score, p.start, s.end, (p, s))
+                for s in p.succ
+            )
+            while possible_routes:
+                print(
+                    "All possible routes: {0:10}, Top score: {1:10}".format(
+                        len(possible_routes), best_routes[t].score),
+                    end='\r'
+                )
+                r = possible_routes.pop()
+                collect_worse(r, possible_routes)
+                # if r.start <= best_routes[t].start and best_routes[t].end <= r.end and r.score < best_routes[t].score:
+                #     continue
+                if exists_better(r, possible_routes):
+                    continue
+
+                if not r.nodes[-1].succ:
+                    if r.score > best_routes[t].score:
+                        best_routes[t] = r
+                    continue
+
+                possible_routes.update(set(
+                    Sequence(r.score+n.score, r.start, n.end, (*r.nodes, n))
+                    for n in r.nodes[-1].succ
+                ))
+        print()
+
+    return best_routes
 
 
 def print_gff(meta, data):
@@ -103,20 +148,20 @@ def print_gff(meta, data):
     print('##date %s' % date.today())
     for group, score in meta:
         print("# Best score of '{0}': {1}".format(group, score))
-    for line in data:
-        print('\t'.join(map(str, line[1:])))
+    for r in data:
+        for node in r.nodes:
+            print(node.line, end="")
 
 
 if __name__ == '__main__':
     try:
-        all_sequences = build_sequences(sys.argv[1])
+        best_routes = find_routes(sys.argv[1])
 
         output = list()
         scores = list()
-        for fid, sequences in all_sequences.items():
-            best = best_score(sequences)
-            scores.append((fid, sum(x.score for x in best)))
-            output += best
+        for fid, route in best_routes.items():
+            scores.append((fid, route.score))
+            output.append(route)
 
         print_gff(scores, output)
 
