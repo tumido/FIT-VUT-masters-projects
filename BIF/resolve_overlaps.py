@@ -44,52 +44,54 @@ def is_overlap(sequence, feature):
 
 def optimize(sequences, f):
     better_exists = False
-    worse_lst = list()
+    worse_lst = set()
     for s in filter(lambda x: len(x) == 1, sequences):
-        s = s[0]
+        s = next(iter(s))
         # Find a shorter Feature in the same region which is better than 'f'
         if s.start >= f.start and s.end <= f.end and f.score < s.score:
             better_exists = True
         # Find a longer Feature in the same region which is worse than 'f'
         if s.start <= f.start and s.end >= f.end and f.score > s.score:
-            worse_lst.append(s)
+            worse_lst.add(s)
 
     return better_exists, worse_lst
 
 
 def build_sequences(input_file):
-    sequences = dict()
+    seqs = dict()
     i = 0
     # Process each Feature in input file
     for f in get_line(input_file):
         i += 1
         # If the Feature is first of its type, add a new key
-        if f.fid not in sequences.keys():
-            sequences[f.fid] = list()
+        if f.fid not in seqs.keys():
+            seqs[f.fid] = set()
 
-        stat = " ".join("{0}: {1}".format(k, len(v)) for k, v in sequences.items())
+        stat = " ".join("{0}: {1}".format(t, len(s)) for t, s in seqs.items())
         print("Item: {0:10} {1}".format(i, stat), end='\r')
         # Skip Features which are longer and have a worse score than already
         # listed ones
-        is_worse, substitute = optimize(sequences[f.fid], f)
+        is_worse, substitute = optimize(seqs[f.fid], f)
         if is_worse:
             continue
         for to_del in substitute:
-            sequences[f.fid] = list(filter(lambda x: to_del not in x, sequences[f.fid]))
+            seqs[f.fid] = set(s for s in seqs[f.fid] if to_del not in s)
 
-        # Find already existent sequences where's no overlap
-        no_overlaps = filter(lambda x: not is_overlap(x, f), sequences[f.fid])
-        elongated = map(lambda x: copy(x) + [f], no_overlaps)
+        # Find already existent seqs where's no overlap
+        no_overlaps = filter(lambda x: not is_overlap(x, f), seqs[f.fid])
+        # no_overlaps = filter(lambda x: not [y for y in no_overlaps if x.issubset(y)], no_overlaps)
+        elongated = map(lambda x: frozenset([*x, f]), no_overlaps)
 
-        # Join all the sequences for this type and the ones without overlap
+        # Join all the seqs for this type and the ones without overlap
         # (cloned + new Feature added)
-        sequences[f.fid] = list(elongated) + sequences[f.fid]
+        seqs[f.fid].update(set(elongated))
 
-        sequences[f.fid].append([f])
+        # Add the fragment itself
+        seqs[f.fid].add(frozenset([f]))
         if i > 500:
             break
     print()
-    return sequences
+    return seqs
 
 
 def best_score(seqs):
