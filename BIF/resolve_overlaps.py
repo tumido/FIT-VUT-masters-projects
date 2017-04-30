@@ -7,7 +7,6 @@ from operator import attrgetter
 from itertools import islice
 
 __author__ = 'xcoufa09'
-DEBUG = False
 
 
 class Sequence:
@@ -24,10 +23,6 @@ class Sequence:
         self.start = start
         self.end = end
         self.nodes = nodes
-
-    def __len__(self):
-        """Size of a Feature is an amount of it's nodes."""
-        return len(self.nodes)
 
     def __lshift__(self, other):
         """Using this operator to compare scores.
@@ -65,11 +60,6 @@ class Feature:
         self._succ_closest_end = None
         self.all_successors_generated = False
 
-    def __str__(self):
-        """Print Feature for debug purposes."""
-        return ("(start={0}, end={1}, score={2})"
-                "".format(self.start, self.end, self.score))
-
     def gen_successors(self, candidates, is_in_list=True):
         """Wrapper generating all successors.
 
@@ -88,8 +78,6 @@ class Feature:
                 # Generation complete
                 break
 
-        if DEBUG:
-            print('{0} has {1} successors      '.format(self, len(self.succ)))
         self.all_successors_generated = True
 
     def make_succ(self, node, sorted_file=False):
@@ -101,10 +89,6 @@ class Feature:
 
         :return: True if 'node' is too far to be a successor (end reached)
         """
-        if DEBUG:
-            print("Creating successors for line: {0:10}"
-                  "".format(self.line), end='\r')
-
         # At first, filter out nodes which doesn't fit
         if not node.start > self.end:
             # If the node doesn't start after this Feature ends, skip it
@@ -157,12 +141,7 @@ def get_line(input_file):
     """Feature generator parsing input file."""
     with open(input_file, 'r') as f:
         # Start counting lines
-        line_no = 0
-        for line in f:
-            line_no += 1
-            if DEBUG:
-                print("Loading line: {0}".format(line_no), end='\r')
-
+        for line_no, line in enumerate(f, start=1):
             # Skip empty or commented lines
             if len(line) <= 1 or line[0] == '#':
                 continue
@@ -243,11 +222,6 @@ def find_routes(input_file, is_sorted=False):
                 # Get the longest route (so we can eliminate them first)
                 r = routes.pop()
 
-                if DEBUG:
-                    print("All possible routes: {0:10}, Top score: {1:10}"
-                          "".format(len(routes), t_best.score),
-                          end='\r')
-
                 # Skip the route if current best is already shorter but better
                 if t_best < r and r << t_best:
                     continue
@@ -275,8 +249,6 @@ def find_routes(input_file, is_sorted=False):
                 )
         # Add t_best to globally tracked best_routes
         best_routes[t] = t_best
-        if DEBUG:
-            print()
 
     return best_routes
 
