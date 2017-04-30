@@ -1,20 +1,40 @@
 #!/usr/bin/env python3
 import sys
-from collections import namedtuple, defaultdict
+from collections import defaultdict
 from operator import attrgetter as get
-from copy import copy
 from datetime import date
 
-Sequence = namedtuple('Sequence', ['score', 'start', 'end', 'nodes'])
+
+class Sequence:
+    def __init__(self, score, start, end, nodes):
+        self.score = score
+        self.start = start
+        self.end = end
+        self.nodes = nodes
+
+    def __lshift__(self, other):
+        """Using this operator to compare scores.
+
+        Sequence is << than other if it's score is lower.
+        """
+        return self.score < other.score
+
+    def __lt__(self, other):
+        """Sequence is smaller if it is shorter.
+
+        Shorter means it starts later and ends before the other Sequence
+        """
+        return other.start <= self.start and self.end <= other.end
+
 
 class Feature:
-    def __init__(self, fid, line, start, end, score):
-        self.fid = fid
+    def __init__(self, line, start, end, score):
         self.line = line
         self.start = start
         self.end = end
         self.score = score
         self.succ = set()
+        self.has_succ = False
     def make_succ(self, node):
         # Add node as successor if it meets requirements
         if not node.start > self.end:
@@ -28,6 +48,9 @@ class Feature:
             # skip it
             return
         # Node is a successor, we're interested in
+
+        # Mark the node - it is a successor of something
+        node.has_succ = True
 
         # If the node is ending before any of current successor, check if it's
         # score is higher
@@ -54,116 +77,91 @@ def get_line(input_file):
             fid = "{0} {1} {2}".format(l[0], l[2], l[6])
 
             # Get me the line!
-            print("Processing line: %d" % i, end='\r')
-            yield fid, Feature(fid, line, int(l[3]), int(l[4]), int(l[5]))
-
-
-def exists_better(route, all_routes):
-    for r in all_routes:
-        if route.start <= r.start and r.end <= route.start and route.score < r.score:
-            return True
-    return False
-
-def collect_worse(route, all_routes):
-    to_remove = set()
-    for r in all_routes:
-        if r.start <= route.start and route.end <= r.end and route.score > r.score:
-            to_remove.add(r)
-    all_routes.difference_update(to_remove)
-
-
-def connect_nodes(nodes):
-    best_node = None
-    for node in nodes:
-        # Find the valid successors
-        [node.make_succ(n) for n in nodes]
-        # Keep track of the best score
-        if not best_node or node.score > best_node.score:
-            best_node = Sequence(node.score, node.start, node.end, (node,))
-    return best_node
+            yield fid, Feature(line, int(l[3]), int(l[4]), int(l[5]))
 
 
 def find_routes(input_file):
     graph = defaultdict(set)
-    best_routes = defaultdict(tuple)
+    best_routes = dict()
 
     # Init Graph nodes (Features)
     [graph[t].add(f) for t, f in get_line(input_file)]
 
     # Loop each strand type separately
     for t, nodes in graph.items():
+        # Remember the top score route
+        t_best = None
+
         # Place the node into the graph
-        # best_routes[t] = connect_nodes(nodes)
         for node in nodes:
             # Find the valid successors
             [node.make_succ(n) for n in nodes]
             # Keep track of the best score
-            if not best_routes[t] or node.score > best_routes[t].score:
-                best_routes[t] = Sequence(node.score, node.start, node.end, (node,))
+            if not t_best or node.score > t_best.score:
+                t_best = Sequence(node.score, node.start, node.end, (node,))
+
         # Find proper starting places
-        start_points = set()
-        for node in nodes:
-            for n in nodes:
-                if node in n.succ:
-                    break
-            else:
-                start_points.add(node)
+        start_points = set(n for n in nodes if not n.has_succ)
 
         # Start the search from nodes with no predecessors
         for p in start_points:
-            # Find the best route
-            possible_routes = set(
+            # Generate initial routes
+            routes = set(
                 Sequence(p.score+s.score, p.start, s.end, (p, s))
                 for s in p.succ
             )
-            while possible_routes:
+
+            # Find the best route
+            while routes:
+                r = routes.pop()
                 print(
                     "All possible routes: {0:10}, Top score: {1:10}".format(
-                        len(possible_routes), best_routes[t].score),
+                        len(routes), t_best.score),
                     end='\r'
                 )
-                r = possible_routes.pop()
-                collect_worse(r, possible_routes)
-                # if r.start <= best_routes[t].start and best_routes[t].end <= r.end and r.score < best_routes[t].score:
-                #     continue
-                if exists_better(r, possible_routes):
+
+                # Skip the route if current best is already shorter but better
+                if t_best < r and r << t_best:
                     continue
 
+                # Remove further routes which would be worse than this one
+                useless_routes = set(k for k in routes if r < k and k << r)
+                routes.difference_update(useless_routes)
+
+                # This node has no further successors, just check the score and
+                # continue
                 if not r.nodes[-1].succ:
-                    if r.score > best_routes[t].score:
-                        best_routes[t] = r
+                    if r.score > t_best.score:
+                        t_best = r
                     continue
 
-                possible_routes.update(set(
+                routes.update(set(
                     Sequence(r.score+n.score, r.start, n.end, (*r.nodes, n))
                     for n in r.nodes[-1].succ
                 ))
+        # Add t_best to globally tracked best_routes
+        best_routes[t] = t_best
         print()
 
     return best_routes
 
 
-def print_gff(meta, data):
+def print_gff(data_dict):
     print('##gff-version 3')
     print('##date %s' % date.today())
-    for group, score in meta:
-        print("# Best score of '{0}': {1}".format(group, score))
-    for r in data:
-        for node in r.nodes:
+
+    for seq in data_dict.keys():
+        print("# Best score of '{0}': {1}".format(seq, data_dict[seq].score))
+
+    for _, series in data_dict.items():
+        for node in series.nodes:
             print(node.line, end="")
 
 
 if __name__ == '__main__':
     try:
         best_routes = find_routes(sys.argv[1])
-
-        output = list()
-        scores = list()
-        for fid, route in best_routes.items():
-            scores.append((fid, route.score))
-            output.append(route)
-
-        print_gff(scores, output)
+        print_gff(best_routes)
 
     except IndexError:
         print('Missing input file')
