@@ -3,9 +3,11 @@ import sys
 from collections import defaultdict
 from datetime import date
 from linecache import getline
+from operator import attrgetter
+from itertools import islice
 
 __author__ = 'xcoufa09'
-DEBUG = True
+DEBUG = False
 
 
 class Sequence:
@@ -22,6 +24,10 @@ class Sequence:
         self.start = start
         self.end = end
         self.nodes = nodes
+
+    def __len__(self):
+        """Size of a Feature is an amount of it's nodes."""
+        return len(self.nodes)
 
     def __lshift__(self, other):
         """Using this operator to compare scores.
@@ -57,7 +63,34 @@ class Feature:
         self.succ = set()
         self.has_pred = False  # Flag the node if it has predecessors
         self._succ_closest_end = None
-        self._succs_complete = False
+        self.all_successors_generated = False
+
+    def __str__(self):
+        """Print Feature for debug purposes."""
+        return ("(start={0}, end={1}, score={2})"
+                "".format(self.start, self.end, self.score))
+
+    def gen_successors(self, candidates, is_in_list=True):
+        """Wrapper generating all successors.
+
+        If successors are not already generated loop through the graph and find
+        all viable nodes. Try to make them successors. When a node, which can
+        be a successor of any of 'self.succ', is found, generation is complete.
+        """
+        if self.all_successors_generated:
+            # Successors already generated
+            return
+
+        # Slice the 'candidates' for faster iterations
+        idx = candidates.index(self) if is_in_list else 0
+        for i in islice(candidates, idx, None):
+            if self.make_succ(i):
+                # Generation complete
+                break
+
+        if DEBUG:
+            print('{0} has {1} successors      '.format(self, len(self.succ)))
+        self.all_successors_generated = True
 
     def make_succ(self, node, sorted_file=False):
         """Add a successor Feature to internal set.
@@ -65,33 +98,30 @@ class Feature:
         If specific conditions are met, add the 'node' into internal 'succ'
         list. In case the 'node' is really added, provide such information
         also by the 'node' itself (via 'has_pred' attribute)
+
+        :return: True if 'node' is too far to be a successor (end reached)
         """
         if DEBUG:
             print("Creating successors for line: {0:10}"
                   "".format(self.line), end='\r')
 
-        if sorted_file and self._succs_complete:
-            # Optimize if the file is sorted by 'node.start'
-            return
-
         # At first, filter out nodes which doesn't fit
         if not node.start > self.end:
             # If the node doesn't start after this Feature ends, skip it
-            return
+            return False
 
         # Node can be a successor, mark it
         node.has_pred = True
 
         # if self.succ and node.start > min(self.succ, key=get('end')).end:
         if self._succ_closest_end and self._succ_closest_end < node.start:
-            # If the node starts after one of successors ends, skip as well
-            # Enable optimization if the file is sorted
-            self._succs_complete = True
-            return
+            # If the node starts after one of successors ends, we reached
+            # the end
+            return True
         if any(node.score < n.score for n in self.succ if node.end >= n.end):
             # If node ends after any current successor and has worse score,
             # skip it (we're able to create shorter and better Sequence)
-            return
+            return False
         # Node is a true successor
 
         # If the node is ending before any of current successor, check if it's
@@ -105,6 +135,8 @@ class Feature:
         # Add the node to our set of successors
         self._set_closest_end(node.end)
         self.succ.add(node)
+
+        return False
 
     def _set_closest_end(self, value):
         """Remember the shortest successor's end value.
@@ -125,7 +157,7 @@ def get_line(input_file):
     """Feature generator parsing input file."""
     with open(input_file, 'r') as f:
         # Start counting lines
-        line_no = 1
+        line_no = 0
         for line in f:
             line_no += 1
             if DEBUG:
@@ -142,6 +174,32 @@ def get_line(input_file):
             # Get me the line!
             yield fid, Feature(line_no, int(line[3]),
                                int(line[4]), int(line[5]))
+
+
+def start_points(nodes):
+    """Make a list of all nodes without a predecessor.
+
+    Loop the 'nodes' and find such nodes which can't have a predecessor. Remove
+    these from 'nodes' list.
+    """
+    prev_nodes = set()
+    # Use the first node's end as a reference
+    closest_end = nodes[0].end
+
+    # Find all starting points
+    for n in nodes:
+        if n.start > closest_end:
+            # Node can be a successor of closest_end's node
+            break
+
+        # Remember the node and adjust the limit
+        prev_nodes.add(n)
+        closest_end = min(n.end, closest_end)
+
+        # we shouldn't use this node any more
+        nodes.remove(n)
+
+    return prev_nodes
 
 
 def find_routes(input_file, is_sorted=False):
@@ -162,22 +220,18 @@ def find_routes(input_file, is_sorted=False):
 
     # Loop each strand type separately
     for t, nodes in graph.items():
-        # Remember the top score route
-        t_best = None
+        # Sort nodes
+        nodes = sorted(nodes, key=attrgetter('start', 'end'))
 
-        # Place the node into the graph
-        for node in nodes:
-            # Find the valid successors
-            [node.make_succ(n) for n in nodes]
-            # Keep track of the best score
-            if not t_best or node.score > t_best.score:
-                t_best = Sequence(node.score, node.start, node.end, (node,))
-
-        # Find proper starting places
-        start_points = iter(n for n in nodes if not n.has_pred)
+        # Remember the top score route (set the best node to begin with)
+        x = max(nodes, key=attrgetter('score'))
+        t_best = Sequence(x.score, x.start, x.end, (x,))
 
         # Start the search from nodes with no predecessors
-        for p in start_points:
+        for p in start_points(nodes):
+            # Generate all successors of starting points
+            p.gen_successors(nodes, is_in_list=False)
+
             # Generate initial routes
             routes = set(
                 Sequence(p.score+s.score, p.start, s.end, (p, s))
@@ -186,7 +240,9 @@ def find_routes(input_file, is_sorted=False):
 
             # Find the best route
             while routes:
+                # Get the longest route (so we can eliminate them first)
                 r = routes.pop()
+
                 if DEBUG:
                     print("All possible routes: {0:10}, Top score: {1:10}"
                           "".format(len(routes), t_best.score),
@@ -197,8 +253,14 @@ def find_routes(input_file, is_sorted=False):
                     continue
 
                 # Remove further routes which would be worse than this one
-                useless_routes = set(k for k in routes if r < k and k << r)
-                routes.difference_update(useless_routes)
+                routes.difference_update(
+                    k
+                    for k in routes.copy()
+                    if r < k and k << r
+                )
+
+                # Generate successors for the last node in route
+                r.nodes[-1].gen_successors(nodes)
 
                 # This node has no further successors, just check the score and
                 # continue
