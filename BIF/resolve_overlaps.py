@@ -45,6 +45,8 @@ class Feature:
 def yield_line(input_file, sort=True):
     """Feature generator parsing input file."""
     data = list()
+    if sort:
+        print("# file will be sorted")
     with open(input_file, 'r') as f:
         # Start counting lines
         for line_no, line in enumerate(f, start=1):
@@ -111,7 +113,7 @@ def update_route(add, remove, all_routes, route, feature):
     if any(a.end <= seqv.end and seqv.score < a.score for a in add):
         return
 
-    # Any of sibling Sequences (derived form the same sequence) is
+    # Any of sibling Sequences (derived from the same sequence) is
     # obviously better
     if any(c.end <= seqv.end and seqv.score < c.score for c in route.children):
         return
@@ -138,12 +140,8 @@ def find_routes(input_file, generator):
     print('##date %s' % date.today())
 
     # Loop input file lines
-    while True:
-        try:
-            f = next(generator)
-            t = f.fid
-        except StopIteration:
-            break
+    for f in generator:
+        t = f.fid
 
         # If the loaded Feature ends after any of current Sequences,
         # get the partial best route and start over
@@ -153,7 +151,7 @@ def find_routes(input_file, generator):
             best_total[t] += best.score
 
             # Print The Sequence
-            print(" "*100, end='\r')
+            print(" "*200, end='\r')
             print("# partial score for '{0}': {1}".format(t, best_total[t]))
             print_seqv(best, input_file)
 
@@ -185,11 +183,13 @@ def find_routes(input_file, generator):
         # pylint: disable=expression-not-assigned
         [routes[t].remove(x) for x in to_remove if x in routes[t]]
 
-        print("routes: {0:10}, line: {1:10}".format(len(routes[t]), f.line_no),
+        print("routes: {0:10}, line: {1:10}, end: {2:10}, last_end: {3:10}"
+              "".format(len(routes[t]), f.line_no, f.start, longest[t]),
               end="\r")
 
     # File is done, print the best route in the last block
     for t, v in routes.items():
+        print(" "*200, end='\r')
         best = max(routes[t], key=attrgetter('score'))
         best_total[t] += best.score
         print_seqv(best, input_file)
