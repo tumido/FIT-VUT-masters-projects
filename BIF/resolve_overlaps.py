@@ -2,9 +2,7 @@
 import sys
 from collections import defaultdict
 from datetime import date
-from linecache import getline
 from operator import attrgetter
-from itertools import islice
 
 __author__ = 'xcoufa09'
 
@@ -13,30 +11,17 @@ class Sequence:
     """Sequence is a superset of Features.
 
     Sequence encapsulates set of Features. Each sequence has a precalculated
-    'score' and is marked by 'start' and 'end'. Features listed in a Sequence
+    'score' and is marked by 'end'. Features listed in a Sequence
     are accessible via 'nodes' member.
     """
 
-    def __init__(self, score, start, end, nodes):
+    def __init__(self, score, end, nodes):
         """Create a Sequence."""
         self.score = score
-        self.start = start
         self.end = end
         self.nodes = nodes
-
-    def __lshift__(self, other):
-        """Using this operator to compare scores.
-
-        Sequence is << than other if it's score is lower.
-        """
-        return self.score < other.score
-
-    def __lt__(self, other):
-        """Sequence is smaller if it is shorter.
-
-        Shorter means it starts later and ends before the other Sequence
-        """
-        return other.start <= self.start and self.end <= other.end
+        self.child_end = None
+        self.children = set()
 
 
 class Feature:
@@ -47,239 +32,177 @@ class Feature:
     marked by 'line' property.
     """
 
-    def __init__(self, line, start, end, score):
+    def __init__(self, fid, line_no, line, start, end, score):
         """Create a Feature."""
-        self.line = line  # Line number pointing to the original file
+        self.fid = fid
+        self.line_no = line_no
+        self.line = line
         self.start = start
         self.end = end
         self.score = score
 
-        # Prepare connecting with other Features - via set of successors
-        self.succ = set()
-        self.has_pred = False  # Flag the node if it has predecessors
-        self._succ_closest_end = None
-        self.all_successors_generated = False
 
-    def gen_successors(self, candidates, is_in_list=True):
-        """Wrapper generating all successors.
-
-        If successors are not already generated loop through the graph and find
-        all viable nodes. Try to make them successors. When a node, which can
-        be a successor of any of 'self.succ', is found, generation is complete.
-        """
-        if self.all_successors_generated:
-            # Successors already generated
-            return
-
-        # Slice the 'candidates' for faster iterations
-        idx = candidates.index(self) if is_in_list else 0
-        for i in islice(candidates, idx, None):
-            if self.make_succ(i):
-                # Generation complete
-                break
-
-        self.all_successors_generated = True
-
-    def make_succ(self, node, sorted_file=False):
-        """Add a successor Feature to internal set.
-
-        If specific conditions are met, add the 'node' into internal 'succ'
-        list. In case the 'node' is really added, provide such information
-        also by the 'node' itself (via 'has_pred' attribute)
-
-        :return: True if 'node' is too far to be a successor (end reached)
-        """
-        # At first, filter out nodes which doesn't fit
-        if not node.start > self.end:
-            # If the node doesn't start after this Feature ends, skip it
-            return False
-
-        # Node can be a successor, mark it
-        node.has_pred = True
-
-        # if self.succ and node.start > min(self.succ, key=get('end')).end:
-        if self._succ_closest_end and self._succ_closest_end < node.start:
-            # If the node starts after one of successors ends, we reached
-            # the end
-            return True
-        if any(node.score < n.score for n in self.succ if node.end >= n.end):
-            # If node ends after any current successor and has worse score,
-            # skip it (we're able to create shorter and better Sequence)
-            return False
-        # Node is a true successor
-
-        # If the node is ending before any of current successor, check if it's
-        # score is higher (remove weaker successors)
-        self.succ = set(
-            s
-            for s in self.succ
-            if s.end < node.end or node.score <= s.score
-        )
-
-        # Add the node to our set of successors
-        self._set_closest_end(node.end)
-        self.succ.add(node)
-
-        return False
-
-    def _set_closest_end(self, value):
-        """Remember the shortest successor's end value.
-
-        If the '_succ_closest_end' is not set, save 'value' as is, find the
-        minimal otherwise
-        """
-        # pylint: disable=method-hidden
-        self._succ_closest_end = value
-        self._set_closest_end = self.__set_closest_end
-
-    def __set_closest_end(self, value):
-        # Bypassing IF statement
-        self._succ_closest_end = min(self._succ_closest_end, value)
-
-
-def get_line(input_file):
+def yield_line(input_file, sort=True):
     """Feature generator parsing input file."""
+    data = list()
     with open(input_file, 'r') as f:
         # Start counting lines
         for line_no, line in enumerate(f, start=1):
+            # if line_no > 20000:
+            #     break
             # Skip empty or commented lines
             if len(line) <= 1 or line[0] == '#':
                 continue
 
-            line = line.split()
+            l = line.split()
             # Create an unique ID defining the strand type
-            fid = "{0} {1} {2}".format(line[0], line[2], line[6])
+            fid = "{0} {1} {2}".format(l[0], l[2], l[6])
 
             # Get me the line!
-            yield fid, Feature(line_no, int(line[3]),
-                               int(line[4]), int(line[5]))
+            f = Feature(fid, line_no, line, int(l[3]), int(l[4]), int(l[5]))
+            if sort:
+                data.append(f)
+            else:
+                yield f
+
+        if not sort:
+            raise StopIteration()
+
+        data = sorted(data, key=attrgetter('start'))
+        for f in data:
+            yield f
 
 
-def start_points(nodes):
-    """Make a list of all nodes without a predecessor.
-
-    Loop the 'nodes' and find such nodes which can't have a predecessor. Remove
-    these from 'nodes' list.
-    """
-    prev_nodes = set()
-    # Use the first node's end as a reference
-    closest_end = nodes[0].end
-
-    # Find all starting points
-    for n in nodes:
-        if n.start > closest_end:
-            # Node can be a successor of closest_end's node
-            break
-
-        # Remember the node and adjust the limit
-        prev_nodes.add(n)
-        closest_end = min(n.end, closest_end)
-
-        # we shouldn't use this node any more
-        nodes.remove(n)
-
-    return prev_nodes
-
-
-def find_routes(input_file, is_sorted=False):
-    """Create graph from Features, build Sequences and find the best one.
-
-    View the Overlapping as a graph. Take each Feature as a node and connect it
-    forward - with its successors. Then iterate through all starting nodes
-    (they are not successors of any other node). For each such node, take it's
-    successors and add this sequence to scope. Repeat with all these Sequences
-    and find the best!
-    """
+def print_seqv(s, in_file):
+    """Print Features in a set."""
     # pylint: disable=expression-not-assigned
-    graph = defaultdict(set)
-    best_routes = dict()
-
-    # Init graph nodes (Features)
-    [graph[t].add(f) for t, f in get_line(input_file)]
-
-    # Loop each strand type separately
-    for t, nodes in graph.items():
-        # Sort nodes
-        nodes = sorted(nodes, key=attrgetter('start', 'end'))
-
-        # Remember the top score route (set the best node to begin with)
-        x = max(nodes, key=attrgetter('score'))
-        t_best = Sequence(x.score, x.start, x.end, (x,))
-
-        # Start the search from nodes with no predecessors
-        for p in start_points(nodes):
-            # Generate all successors of starting points
-            p.gen_successors(nodes, is_in_list=False)
-
-            # Generate initial routes
-            routes = set(
-                Sequence(p.score+s.score, p.start, s.end, (p, s))
-                for s in p.succ
-            )
-
-            # Find the best route
-            while routes:
-                # Get the longest route (so we can eliminate them first)
-                r = routes.pop()
-
-                # Skip the route if current best is already shorter but better
-                if t_best < r and r << t_best:
-                    continue
-
-                # Remove further routes which would be worse than this one
-                routes.difference_update(
-                    k
-                    for k in routes.copy()
-                    if r < k and k << r
-                )
-
-                # Generate successors for the last node in route
-                r.nodes[-1].gen_successors(nodes)
-
-                # This node has no further successors, just check the score and
-                # continue
-                if not r.nodes[-1].succ:
-                    if r.score > t_best.score:
-                        t_best = r
-                    continue
-
-                routes.update(
-                    Sequence(r.score+n.score, r.start, n.end, (*r.nodes, n))
-                    for n in r.nodes[-1].succ
-                )
-        # Add t_best to globally tracked best_routes
-        best_routes[t] = t_best
-
-    return best_routes
+    [print(n.line, end="") for n in s.nodes]
 
 
-def print_gff(input_file, data_dict):
-    """Print results to stdout in GFF format.
+def update_route(add, remove, all_routes, route, feature):
+    """Find routes which are elongated by or removed because of 'feature'.
 
-    Loop through Features in Sequences and reuse the lines from input file.
-    GFF specification:
-    https://github.com/The-Sequence-Ontology/Specifications/blob/master/gff3.md
+    From 'all_routes' remove worse routes than current 'route'. Then find if
+    the 'route' should be elongated. If so, inject it into 'add' set and update
+    'route' properties.
     """
-    # Header
+    if route in remove:
+        return
+
+    # Remove obviously worse Sequences
+    if any(k.end <= route.end and route.score < k.score for k in all_routes):
+        remove.add(route)
+        return
+
+    # Fragments starts after a children of 'r' Sequence
+    if route.child_end and feature.start > route.child_end:
+        remove.add(route)
+        return
+
+    # Feature is overlapping
+    if feature.start <= route.end:
+        return
+
+    # Candidate Feature successor for a Sequence
+    seqv = Sequence(route.score+feature.score, feature.end,
+                    (*route.nodes, feature))
+
+    # Any of newly created is better on first sight
+    if any(a.end <= seqv.end and seqv.score < a.score for a in add):
+        return
+
+    # Any of sibling Sequences (derived form the same sequence) is
+    # obviously better
+    if any(c.end <= seqv.end and seqv.score < c.score for c in route.children):
+        return
+
+    # Candidate passed, add the sequence to 'to_add' and update parent
+    add.append(seqv)
+    if route.child_end:
+        route.child_end = min(route.child_end, seqv.end)
+    else:
+        route.child_end = seqv.end
+    route.children.add(seqv)
+
+
+def find_routes(input_file, generator):
+    """Find the best routes."""
+    # Loop each strand type separately
+    longest = dict()
+    closest = dict()
+    routes = defaultdict(list)
+    best_total = defaultdict(int)
+
+    # Print GFF header
     print('##gff-version 3')
     print('##date %s' % date.today())
 
-    # Meta information to verify results
-    for seq in data_dict.keys():
-        print("# Best score of '{0}': {1}".format(seq, data_dict[seq].score))
+    # Loop input file lines
+    while True:
+        try:
+            f = next(generator)
+            t = f.fid
+        except StopIteration:
+            break
 
-    # Dump lines
-    for _, series in data_dict.items():
-        for node in series.nodes:
-            # Find the line in input_file and print it
-            line = getline(input_file, node.line)
-            print(line, end="")
+        # If the loaded Feature ends after any of current Sequences,
+        # get the partial best route and start over
+        if t in longest.keys() and f.start > longest[t]:
+            # Get best and count score
+            best = max(routes[t], key=attrgetter('score'))
+            best_total[t] += best.score
+
+            # Print The Sequence
+            print(" "*100, end='\r')
+            print("# partial score for '{0}': {1}".format(t, best_total[t]))
+            print_seqv(best, input_file)
+
+            # Clear the stack
+            routes[t].clear()
+            closest.pop(t, None)
+            longest.pop(t, None)
+
+        # Update boundaries
+        if t in longest.keys():
+            longest[t] = max(longest[t], f.end)
+            closest[t] = min(closest[t], f.end)
+        else:
+            longest[t] = closest[t] = f.end
+
+        # If the Feature can't be added to any Sequence, add it as a new
+        # Sequence
+        if closest[t] > f.start:
+            routes[t].append(Sequence(f.score, f.end, (f,)))
+            continue
+
+        # Loop and elongate (or remove) current lines
+        to_add = list()
+        to_remove = set()
+        for r in routes[t]:
+            update_route(to_add, to_remove, routes[t], r, f)
+
+        routes[t].extend(to_add)
+        # pylint: disable=expression-not-assigned
+        [routes[t].remove(x) for x in to_remove if x in routes[t]]
+
+        print("routes: {0:10}, line: {1:10}".format(len(routes[t]), f.line_no),
+              end="\r")
+
+    # File is done, print the best route in the last block
+    for t, v in routes.items():
+        best = max(routes[t], key=attrgetter('score'))
+        best_total[t] += best.score
+        print_seqv(best, input_file)
+
+    # Print stats
+    for t, v in best_total.items():
+        print("# {0}: {1}".format(t, v))
 
 
 if __name__ == '__main__':
     try:
-        s_mode = sys.argv[1] == '-s'
-        best_sequences = find_routes(sys.argv[-1], is_sorted=s_mode)
-        print_gff(sys.argv[-1], best_sequences)
+        is_sorted = sys.argv[1] != '-s'
+        gen = yield_line(sys.argv[-1], sort=is_sorted)
+        find_routes(sys.argv[-1], gen)
     except IndexError:
         print('Missing input file')
