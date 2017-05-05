@@ -21,8 +21,6 @@ class Sequence:
         self.score = score
         self.end = end
         self.nodes = nodes
-        self.child_end = None
-        self.children = set()
 
     def __add__(self, feature):
         """Append Feature to the Sequence."""
@@ -42,15 +40,13 @@ class Feature:
     marked by 'line' property.
     """
 
-    def __init__(self, fid, line_no, line, start, end, score):
+    def __init__(self, fid, line, start, end, score):
         """Create a Feature."""
         self.fid = fid
-        self.line_no = line_no
         self.line = line
         self.start = start
         self.end = end
         self.score = score
-        # self.pred = None
 
 
 def yield_line(input_file, sort=True):
@@ -62,21 +58,21 @@ def yield_line(input_file, sort=True):
 
     with open(input_file, 'r') as f:
         # Start counting lines
-        for line_no, line in enumerate(f, start=1):
+        for line in f:
             # Skip empty or commented lines
             if len(line) <= 1 or line[0] == '#':
                 continue
 
-            l = line.split()
+            l = line.split()  # noqa
             # Create an unique ID defining the strand type
             fid = "{0} {1} {2}".format(l[0], l[2], l[6])
 
             # Get me the line!
-            f = Feature(fid, line_no, line, int(l[3]), int(l[4]), int(l[5]))
+            feature = Feature(fid, line, int(l[3]), int(l[4]), int(l[5]))
             if sort:
-                data.append(f)
+                data.append(feature)
             else:
-                yield f
+                yield feature
 
         if not sort:
             raise StopIteration()
