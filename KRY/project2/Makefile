@@ -16,8 +16,8 @@ csv: validate_certs
 	./$^ > $(NAME)-domains.csv
 
 clean:
-	rm -vf *.o *.tar.gz $(PROG)
+	rm -vf *.o *.tar.gz *.csv $(PROG)
 
 pack: clean csv
-	tar -zcvf $(NAME)-source-code.tar.gz *.cpp Makefile
+	tar -zcvf $(NAME)-source-code.tar.gz *.cpp Makefile crocs-ca.pem
 	tar -zcvf $(NAME).tar.gz $(NAME)-source-code.tar.gz $(NAME)-domains.csv $(NAME)-report.pdf
