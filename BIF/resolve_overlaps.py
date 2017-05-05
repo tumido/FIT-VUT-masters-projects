@@ -3,6 +3,7 @@ import sys
 from collections import defaultdict
 from datetime import date
 from operator import attrgetter
+from bisect import bisect_left
 
 __author__ = 'xcoufa09'
 
@@ -23,6 +24,15 @@ class Sequence:
         self.child_end = None
         self.children = set()
 
+    def __add__(self, feature):
+        """Append Feature to the Sequence."""
+        return Sequence(self.score + feature.score,
+                        feature.end, (*self.nodes, feature))
+
+    def __gt__(self, other):
+        """Compare Sequences by score."""
+        return self.score > other.score
+
 
 class Feature:
     """Feature, an area building sequences without overlaps.
@@ -40,18 +50,19 @@ class Feature:
         self.start = start
         self.end = end
         self.score = score
+        # self.pred = None
 
 
 def yield_line(input_file, sort=True):
     """Feature generator parsing input file."""
     data = list()
+    # Used algorithm require sorted file
     if sort:
-        print("# file will be sorted")
+        print("# File will be sorted")
+
     with open(input_file, 'r') as f:
         # Start counting lines
         for line_no, line in enumerate(f, start=1):
-            # if line_no > 20000:
-            #     break
             # Skip empty or commented lines
             if len(line) <= 1 or line[0] == '#':
                 continue
@@ -70,139 +81,96 @@ def yield_line(input_file, sort=True):
         if not sort:
             raise StopIteration()
 
+        # Sort data and yield it
         data = sorted(data, key=attrgetter('start'))
         for f in data:
             yield f
 
 
-def print_seqv(s, in_file):
-    """Print Features in a set."""
-    # pylint: disable=expression-not-assigned
-    [print(n.line, end="") for n in s.nodes]
-
-
-def update_route(add, remove, all_routes, route, feature):
-    """Find routes which are elongated by or removed because of 'feature'.
-
-    From 'all_routes' remove worse routes than current 'route'. Then find if
-    the 'route' should be elongated. If so, inject it into 'add' set and update
-    'route' properties.
-    """
-    if route in remove:
-        return
-
-    # Remove obviously worse Sequences
-    if any(k.end <= route.end and route.score < k.score for k in all_routes):
-        remove.add(route)
-        return
-
-    # Fragments starts after a children of 'r' Sequence
-    if route.child_end and feature.start > route.child_end:
-        remove.add(route)
-        return
-
-    # Feature is overlapping
-    if feature.start <= route.end:
-        return
-
-    # Candidate Feature successor for a Sequence
-    seqv = Sequence(route.score+feature.score, feature.end,
-                    (*route.nodes, feature))
-
-    # Any of newly created is better on first sight
-    if any(a.end <= seqv.end and seqv.score < a.score for a in add):
-        return
-
-    # Any of sibling Sequences (derived from the same sequence) is
-    # obviously better
-    if any(c.end <= seqv.end and seqv.score < c.score for c in route.children):
-        return
-
-    # Candidate passed, add the sequence to 'to_add' and update parent
-    add.append(seqv)
-    if route.child_end:
-        route.child_end = min(route.child_end, seqv.end)
-    else:
-        route.child_end = seqv.end
-    route.children.add(seqv)
-
-
 def find_routes(input_file, generator):
-    """Find the best routes."""
-    # Loop each strand type separately
-    longest = dict()
-    closest = dict()
-    routes = defaultdict(list)
-    best_total = defaultdict(int)
+    """Find the best non-overlapping Sequence in a file.
 
+    Divide file into blocks and find the best Sequences for each.
+    """
     # Print GFF header
     print('##gff-version 3')
     print('##date %s' % date.today())
 
-    # Loop input file lines
+    # Remember parsed features, top score for each type and the most far end
+    features = defaultdict(list)
+    top_score = defaultdict(int)
+    most_far = defaultdict(int)
+
+    # Loop Features
     for f in generator:
-        t = f.fid
+        # Divide file into blocks is possible thanks to file being sorted by
+        # 'start' of each Feature
+        # When feature starts after all on previously discovered, the best
+        # partial Sequence can be located here no matter what follows
+        if f.fid in most_far.keys() and f.start > most_far[f.fid]:
+            top_score[f.fid] += get_partial(features[f.fid])
+            features[f.fid].clear()
 
-        # If the loaded Feature ends after any of current Sequences,
-        # get the partial best route and start over
-        if t in longest.keys() and f.start > longest[t]:
-            # Get best and count score
-            best = max(routes[t], key=attrgetter('score'))
-            best_total[t] += best.score
-
-            # Print The Sequence
-            print(" "*200, end='\r')
-            print("# partial score for '{0}': {1}".format(t, best_total[t]))
-            print_seqv(best, input_file)
-
-            # Clear the stack
-            routes[t].clear()
-            closest.pop(t, None)
-            longest.pop(t, None)
-
-        # Update boundaries
-        if t in longest.keys():
-            longest[t] = max(longest[t], f.end)
-            closest[t] = min(closest[t], f.end)
+        # Update the latest seen 'end'
+        if f.fid in most_far.keys():
+            most_far[f.fid] = max(f.end, most_far[f.fid])
         else:
-            longest[t] = closest[t] = f.end
+            most_far[f.fid] = f.end
 
-        # If the Feature can't be added to any Sequence, add it as a new
-        # Sequence
-        if closest[t] > f.start:
-            routes[t].append(Sequence(f.score, f.end, (f,)))
-            continue
+        # Build list of features
+        features[f.fid].append(f)
 
-        # Loop and elongate (or remove) current lines
-        to_add = list()
-        to_remove = set()
-        for r in routes[t]:
-            update_route(to_add, to_remove, routes[t], r, f)
+    # File parsed completely, find routes in the last block
+    for fid in features.keys():
+        top_score[fid] += get_partial(features[fid])
 
-        routes[t].extend(to_add)
-        # pylint: disable=expression-not-assigned
-        [routes[t].remove(x) for x in to_remove if x in routes[t]]
+    # Print overall statistics
+    for t, score in top_score.items():
+        print("# Type '{0}' scored: {1:10}".format(t, score))
 
-        print("routes: {0:10}, line: {1:10}, end: {2:10}, last_end: {3:10}"
-              "".format(len(routes[t]), f.line_no, f.start, longest[t]),
-              end="\r")
 
-    # File is done, print the best route in the last block
-    for t, v in routes.items():
-        print(" "*200, end='\r')
-        best = max(routes[t], key=attrgetter('score'))
-        best_total[t] += best.score
-        print_seqv(best, input_file)
+def get_partial(routes):
+    """Find the Sequence with best score.
 
-    # Print stats
-    for t, v in best_total.items():
-        print("# {0}: {1}".format(t, v))
+    Loop routes and build up Sequences. Find the best one by score.
+    """
+    sequences = defaultdict(Sequence)
+    # To successfully find the Sequences we need to get the ones which ends
+    # before our Feature - Sort by end of Feature
+    routes.sort(key=attrgetter('end'))
+
+    # Index starts and ends
+    start = [f.start for f in routes]
+    end = [f.end for f in routes]
+
+    # Initial conditions
+    sequences[0] = Sequence(0, 0, set())
+    sequences[1] = Sequence(routes[0].score, routes[0].end, (routes[0],))
+
+    # Find best sequences
+    for i in range(2, len(routes)+1):
+        # Find best suitable for elongating
+        new_seq = sequences[bisect_left(end, start[i-1])] + routes[i-1]
+        # Remember the best one
+        sequences[i] = max(sequences[i-1], new_seq)
+
+    # Print the best route
+    for n in sequences[len(routes)].nodes:
+        print(n.line, end='')
+
+    return sequences[len(routes)].score
 
 
 if __name__ == '__main__':
     try:
+        # Enable optimized parsing - file is pre-sorted
         is_sorted = sys.argv[1] != '-s'
+
+        # The reason for using sorted data is, we can walk the file and divide
+        # it into separate small blocks (in find_routes)
         gen = yield_line(sys.argv[-1], sort=is_sorted)
+
+        # Find the best Sequences
         find_routes(sys.argv[-1], gen)
     except IndexError:
         print('Missing input file')
