@@ -3,7 +3,6 @@ using namespace std;
 
 u_int8_t get_byte(FILE * file) {
   u_int8_t c = fgetc(file);
-  printf("%x\n", c);
   if (c == EOF) {
     eprintf("Unexpected GIF file end");
     exit(EXIT_FAILURE);
@@ -177,6 +176,13 @@ int gif2bmp(tGIF2BMP *gif2bmp, FILE *inputFile, FILE *outputFile) {
   // Process the file content
   vector<vector<tRGB>> image = parse_gif_content(inputFile, &global_color_table);
 
+  // Match the end of file
+  gif2bmp->gifSize = ftell(inputFile);
+  fseek(inputFile, 0, SEEK_END);
+  if (gif2bmp->gifSize != ftell(inputFile)){
+    eprintf("Unexpected file size (analyzed size doesn't match with real size)\n");
+    return EXIT_FAILURE;
+  }
     //
     // // Zápis získaných dat do výstupního souboru
     // writeBMPData(gif2bmp);
