@@ -1,6 +1,11 @@
 #include "gif2bmp.h"
 using namespace std;
 
+/**
+ * Read a Byte from file
+ * @param  file input
+ * @return      a byte of data
+ */
 u_int8_t get_byte(FILE * file) {
   u_int8_t c = fgetc(file);
   if (c == EOF) {
@@ -10,6 +15,11 @@ u_int8_t get_byte(FILE * file) {
   return c;
 }
 
+/**
+ * Check if the GIF type and signature is present and matching
+ * @param  file input
+ * @return      true if the signature is valid
+ */
 bool verify_gif_signature(FILE * file) {
   vector<u_int8_t> data;
   for (size_t i = 0; i < GIF_SIGNATURE_LENGTH; i++)
@@ -19,27 +29,47 @@ bool verify_gif_signature(FILE * file) {
   return (signature == GIF_SIGNATURE);
 }
 
+/**
+ * Parse GIF header
+ * @param  file input
+ * @return      a header according to tGIFInfo type
+ */
 tGIFInfo read_gif_header(FILE * file) {
   tGIFInfo info;
+  // Read 2 byte values
   info.width  = get_byte(file) | (get_byte(file) << BYTE);
   info.height = get_byte(file) | (get_byte(file) << BYTE);
+  // Read 1 byte values
   info.gct_flags = get_byte(file);
   info.bg_color = get_byte(file);
   info.px_ratio = get_byte(file);
   return info;
 }
 
+/**
+ * Parse any color table
+ * @param file       input
+ * @param size       the size specification of the table
+ * @return           vector of colors in a table
+ */
 vector<tRGB> read_color_table(FILE * file, size_t size) {
   vector<tRGB> table;
+  // Push colors to vector
   for(size_t i = 0; i < size; i++)
     table.emplace_back(get_byte(file), get_byte(file), get_byte(file));
 
   return table;
 }
 
+/**
+ * Parse block data (including sub-blocks) and return them as a vector
+ * @param file       input
+ * @return           deque of block data
+ */
 deque<u_int8_t> get_block_data(FILE * file) {
   deque<u_int8_t> data;
   u_int8_t b_size;
+  // Read data until a TERMINATOR is found
   while ((b_size = get_byte(file)) != TERMINATOR) {
     for (u_int8_t i = 0; i < b_size; i++) {
       data.push_back(get_byte(file));
@@ -48,6 +78,13 @@ deque<u_int8_t> get_block_data(FILE * file) {
   return data;
 }
 
+/**
+ * Process the image data in a file
+ * @param file       input
+ * @param image_data vector of output data
+ * @param gct        global color map
+ * @param gext       graphic extension structure
+ */
 void parse_image_block(FILE * file, vector<tRGB> * image_data, vector<tRGB> * gct, tGraphicExt * gext) {
   // Read left and top position, height and width
   u_int16_t left_pos = get_byte(file) | (get_byte(file) << BYTE);
@@ -84,6 +121,7 @@ void parse_image_block(FILE * file, vector<tRGB> * image_data, vector<tRGB> * gc
     dict.emplace(j, vector<tRGB>());
     dict[j].push_back(color_table->at(j));
   }
+  // Init LZW parser
   vector<tRGB> previous_data;
   u_int16_t code;
   u_int16_t counter = 0;
@@ -91,7 +129,10 @@ void parse_image_block(FILE * file, vector<tRGB> * image_data, vector<tRGB> * gc
   u_int8_t bit;
   bool first_flag = true;
   u_int16_t table_idx = 0;
+
+  // Parse data
   while (counter < data.size()) {
+    // Read the code
     code = 0;
     for(u_int8_t idx = 0; idx < lzw_real_code_size; idx++) {
       bit = (data[counter] & mask) ? 1 : 0;
@@ -102,6 +143,7 @@ void parse_image_block(FILE * file, vector<tRGB> * image_data, vector<tRGB> * gc
         mask =1;
       }
     }
+
     // cout << to_string(code) << " :" << to_string(lzw_real_code_size) << endl;
     if (first_flag) {
       first_flag = false;
@@ -109,9 +151,11 @@ void parse_image_block(FILE * file, vector<tRGB> * image_data, vector<tRGB> * gc
     }
     table_idx++;
 
+    // End if end of input
     if (code == end_input)
       break;
 
+    // Clear the table
     if (code == clear_code){
       dict.clear();
       lzw_real_code_size = lzw_min_code_size + 1;
@@ -125,6 +169,7 @@ void parse_image_block(FILE * file, vector<tRGB> * image_data, vector<tRGB> * gc
       }
     }
 
+    // Make the LZW code greater
     if (table_idx == last_code) {
       // printf("LAST\n");
       if (lzw_real_code_size < MAX_LZW_SIZE)
@@ -133,37 +178,55 @@ void parse_image_block(FILE * file, vector<tRGB> * image_data, vector<tRGB> * gc
       table_idx = 0;
     }
 
-    // FIXME
-    if (dict.find(code) == dict.end() && previous_data.size())
+    // If the key is not in our dictionary
+    if (dict.find(code) == dict.end() && previous_data.size()) {
+      eprintf("%d\n", code);
+      dict[code] = vector<tRGB>();
       dict[code].push_back(previous_data[0]);
+    }
 
+    // Output data
     image_data->insert(image_data->end(), dict[code].begin(), dict[code].end());
+    // eprintf("%ld\n", image_data->size());
 
-    if (previous_data.size()){
+    // Update dictionary with new item
+    if (previous_data.size()) {
       dict[dict.size()] = previous_data;
-      dict.emplace(dict.size(), previous_data);
       dict[dict.size()].push_back(dict[code][0]);
     }
     previous_data = dict[code];
   }
 }
 
-
+/**
+ * Process the text extension
+ * @param file input
+ */
 void parse_text_ext(FILE * file) {
   // Skip it
   get_block_data(file);
 }
 
+/**
+ * Process the comments extension
+ * @param file input
+ */
 void parse_comment_ext(FILE * file) {
   // Skip it
   get_block_data(file);
 }
 
+/**
+ * Parse data from the graphic extension
+ * @param  file input
+ * @return      graphic extension structure
+ */
 tGraphicExt parse_graphic_ext(FILE * file) {
   tGraphicExt data;
   // Skip first byte telling the extension size
   get_byte(file);
 
+  // Unpack data
   data.packed_field = get_byte(file);
   data.delay_time = get_byte(file) | (get_byte(file) << BYTE);
   data.transparent_color_idx = get_byte(file);
@@ -173,22 +236,34 @@ tGraphicExt parse_graphic_ext(FILE * file) {
   return data;
 }
 
+/**
+ * Parse the application extension
+ * @param file input
+ */
 void parse_app_ext(FILE * file) {
   // Skip first byte telling the extension size
   get_byte(file);
+
   // Get app identifier
   vector<u_int8_t> id_data;
   for (size_t i = 0; i < APP_ID_SIZE; i++)
     id_data.push_back(get_byte(file));
   string app_id(id_data.begin(), id_data.end());
+
   // Print it
   eprintf("Application extension block: %s", app_id.c_str());
   // Skip the rest
   get_block_data(file);
 }
 
+/**
+ * Parse the content of whole GIF file and distribute parsing on beach block
+ * @param file  input
+ * @param gct   global color table
+ */
 vector<tRGB> parse_gif_content(FILE * file, vector<tRGB> * gct) {
   vector<tRGB> image;
+
   // Read separators until end
   u_int8_t sep;
   while((sep = get_byte(file)) != TRAILER) {
@@ -199,6 +274,7 @@ vector<tRGB> parse_gif_content(FILE * file, vector<tRGB> * gct) {
         parse_image_block(file, &image, gct, &g_ext);
         break;
       case EXTENSION_BLOCK: {
+        // Parse extensions separately
         u_int8_t ext_type = get_byte(file);
         switch(ext_type) {
           case GRAPHIC_EXT:
@@ -227,6 +303,12 @@ vector<tRGB> parse_gif_content(FILE * file, vector<tRGB> * gct) {
   return image;
 }
 
+/**
+ * Save the BMP image
+ * @param file output
+ * @param info GIF header which hold important data
+ * @param data pixel data
+ */
 void dump_bmp(FILE * file, tGIFInfo info, vector<tRGB> data) {
   // Signature
 	fwrite(BMP_SIGNATURE, sizeof(uint16_t), 1, file);
@@ -258,17 +340,27 @@ void dump_bmp(FILE * file, tGIFInfo info, vector<tRGB> data) {
   u_int32_t zero[4] = {BMP_RES, BMP_RES, BMP_COLORS, BMP_COLORS};
 	fwrite(zero, sizeof(u_int32_t), 4, file);
 
+  // Flush data
   for (auto i: data) {
     fwrite(&(i.b), sizeof(u_int8_t), 1, file);
     fwrite(&(i.g), sizeof(u_int8_t), 1, file);
     fwrite(&(i.r), sizeof(u_int8_t), 1, file);
   }
+  // Align file
   for (size_t i = 0; i < align; i++) fputc(0, file);
 }
 
+/**
+ * Convert GIF to BMP
+ * @param  gif2bmp    statistics
+ * @param  inputFile  GIF file
+ * @param  outputFile BMP file
+ * @return            EXIT_SUCCESS if everything is fine
+ */
 int gif2bmp(tGIF2BMP *gif2bmp, FILE *inputFile, FILE *outputFile) {
   // Verify the inputFile is a GIF
   if (!verify_gif_signature(inputFile)) {
+    eprintf("Not a valid GIF signature.\n");
     return EXIT_FAILURE;
   }
 
@@ -292,6 +384,7 @@ int gif2bmp(tGIF2BMP *gif2bmp, FILE *inputFile, FILE *outputFile) {
     eprintf("Unexpected file size (analyzed size doesn't match with real size)\n");
     return EXIT_FAILURE;
   }
+  gif2bmp->bmpSize = ftell(outputFile);
 
   dump_bmp(outputFile, info, image);
 

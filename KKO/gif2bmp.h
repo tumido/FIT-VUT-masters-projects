@@ -69,4 +69,11 @@ typedef struct {
   u_int64_t long gifSize;
 } tGIF2BMP;
 
+/**
+ * Convert GIF to BMP
+ * @param  gif2bmp    statistics
+ * @param  inputFile  GIF file
+ * @param  outputFile BMP file
+ * @return            EXIT_SUCCESS if everything is fine
+ */
 int gif2bmp(tGIF2BMP *gif2bmp, FILE *inputFile, FILE *outputFile);

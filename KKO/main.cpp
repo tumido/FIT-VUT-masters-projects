@@ -4,6 +4,9 @@
 
 using namespace std;
 
+/**
+ * Output help
+ */
 void printHelp() {
   printf("Usage: gif2bmp [-i input_file] [-o output_file] [-l log_file] [-h]\n");
   printf("  -i input file name (GIF), default: stdin\n");
@@ -12,6 +15,12 @@ void printHelp() {
   printf("  -h print help\n");
 }
 
+/**
+ * GIF to BMP console converter
+ * @param  argc count of args
+ * @param  argv command line args
+ * @return      EXIT_SUCCESS when conversion is successful
+ */
 int main(int argc, char *argv[]) {
   tGIF2BMP logging = {0, 0};
   FILE * in_f = stdin, * out_f = stdout, * log_f = NULL;
