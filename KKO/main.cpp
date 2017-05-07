@@ -4,13 +4,6 @@
 
 using namespace std;
 
-typedef struct {
-    int argc;
-    char **argv;
-    string inputFileName, outputFileName, logFileName;
-    FILE * inputFile, * outputFile, * logFile;
-} tArguments;
-
 void printHelp() {
   printf("Usage: gif2bmp [-i input_file] [-o output_file] [-l log_file] [-h]\n");
   printf("  -i input file name (GIF), default: stdin\n");

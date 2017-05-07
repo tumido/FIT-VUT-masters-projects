@@ -48,7 +48,7 @@ deque<u_int8_t> get_block_data(FILE * file) {
   return data;
 }
 
-void parse_image_block(FILE * file, vector<vector<tRGB>> * image_data, vector<tRGB> * gct, tGraphicExt * gext) {
+void parse_image_block(FILE * file, vector<tRGB> * image_data, vector<tRGB> * gct, tGraphicExt * gext) {
   // Read left and top position, height and width
   u_int16_t left_pos = get_byte(file) | (get_byte(file) << BYTE);
   u_int16_t top_pos = get_byte(file) | (get_byte(file) << BYTE);
@@ -62,7 +62,6 @@ void parse_image_block(FILE * file, vector<vector<tRGB>> * image_data, vector<tR
     size_t size = 1 << ((lct_flags & LCT_SIZE_MASK)+1);
     lct = read_color_table(file, size);
   }
-  // interlacing? lct_flags & (1 << LCT_INTERLACE_OFFSET);
 
   // Read LZW minimal code size
   u_int8_t lzw_min_code_size = get_byte(file);
@@ -70,14 +69,85 @@ void parse_image_block(FILE * file, vector<vector<tRGB>> * image_data, vector<tR
   // Read data of all sub-blocks
   deque<u_int8_t> data = get_block_data(file);
 
-  // Process data
-  // clear_code 1 << lzw_min_code_size
-  // end_input (1 << lzw_min_code_size) + 1
-  // lzw_code_size lzw_min_code_size + 1
-  // for (auto b: data) {
-  //
-  // }
+  // Select color table
+  vector<tRGB> * color_table = lct.size() ? &lct : gct;
+
+  // Decompress LZW
+  u_int16_t clear_code = 1 << lzw_min_code_size;
+  u_int16_t lzw_real_code_size = lzw_min_code_size + 1;
+  u_int16_t end_input = clear_code + 1;
+  u_int16_t last_code = clear_code - 1;
+
+  // Init Dictionary
+  unordered_map<u_int16_t, vector<tRGB>> dict(clear_code);
+  for (u_int16_t j = 0; dict.size() < color_table->size(); j++ ){
+    dict.emplace(j, vector<tRGB>());
+    dict[j].push_back(color_table->at(j));
+  }
+  vector<tRGB> previous_data;
+  u_int16_t code;
+  u_int16_t counter = 0;
+  u_int8_t mask = 1;
+  u_int8_t bit;
+  bool first_flag = true;
+  u_int16_t table_idx = 0;
+  while (counter < data.size()) {
+    code = 0;
+    for(u_int8_t idx = 0; idx < lzw_real_code_size; idx++) {
+      bit = (data[counter] & mask) ? 1 : 0;
+      code = code | (bit << idx);
+      mask = mask << 1;
+      if (!mask) {
+        counter++;
+        mask =1;
+      }
+    }
+    // cout << to_string(code) << " :" << to_string(lzw_real_code_size) << endl;
+    if (first_flag) {
+      first_flag = false;
+      continue;
+    }
+    table_idx++;
+
+    if (code == end_input)
+      break;
+
+    if (code == clear_code){
+      dict.clear();
+      lzw_real_code_size = lzw_min_code_size + 1;
+      last_code = (1 << lzw_min_code_size) - 1;
+      // printf("CLEAR %d\n", clear_code);
+      table_idx = 0;
+      dict = unordered_map<u_int16_t, vector<tRGB>>(1 << lzw_min_code_size);
+      for (u_int16_t i = 0; i < color_table->size(); i++) {
+        dict.emplace(i, vector<tRGB>());
+        dict[i].push_back(color_table->at(i));
+      }
+    }
+
+    if (table_idx == last_code) {
+      // printf("LAST\n");
+      if (lzw_real_code_size < MAX_LZW_SIZE)
+        lzw_real_code_size++;
+      last_code = 1 << (lzw_real_code_size-1);
+      table_idx = 0;
+    }
+
+    // FIXME
+    if (dict.find(code) == dict.end() && previous_data.size())
+      dict[code].push_back(previous_data[0]);
+
+    image_data->insert(image_data->end(), dict[code].begin(), dict[code].end());
+
+    if (previous_data.size()){
+      dict[dict.size()] = previous_data;
+      dict.emplace(dict.size(), previous_data);
+      dict[dict.size()].push_back(dict[code][0]);
+    }
+    previous_data = dict[code];
+  }
 }
+
 
 void parse_text_ext(FILE * file) {
   // Skip it
@@ -117,8 +187,8 @@ void parse_app_ext(FILE * file) {
   get_block_data(file);
 }
 
-vector<vector<tRGB>> parse_gif_content(FILE * file, vector<tRGB> * gct) {
-  vector<vector<tRGB>> image;
+vector<tRGB> parse_gif_content(FILE * file, vector<tRGB> * gct) {
+  vector<tRGB> image;
   // Read separators until end
   u_int8_t sep;
   while((sep = get_byte(file)) != TRAILER) {
@@ -157,6 +227,45 @@ vector<vector<tRGB>> parse_gif_content(FILE * file, vector<tRGB> * gct) {
   return image;
 }
 
+void dump_bmp(FILE * file, tGIFInfo info, vector<tRGB> data) {
+  // Signature
+	fwrite(BMP_SIGNATURE, sizeof(uint16_t), 1, file);
+  // Size
+  u_int32_t align = info.width*sizeof(tRGB);
+  align = BMP_ALIGN - (align % BMP_ALIGN);
+  u_int32_t bytes = BMP_HEADER_SIZE + BMP_HEADER_OFFSET + info.width*info.height*sizeof(tRGB) + info.height*align;
+	fwrite(&bytes, sizeof(u_int32_t), 1, file);
+  // Reserved 2x
+	bytes = 0;
+	fwrite(&bytes, sizeof(u_int32_t), 1, file);
+  // Data offset
+  bytes = BMP_HEADER_OFFSET;
+	fwrite(&bytes, sizeof(u_int32_t), 1, file);
+  // Header size
+	fwrite(&bytes, sizeof(u_int32_t), 1, file);
+  // Dimensions
+	fwrite(&(info.width), sizeof(u_int32_t), 1, file);
+	fwrite(&(info.height), sizeof(u_int32_t), 1, file);
+  // Additional data
+  bytes = BMP_N_PLANES;
+	fwrite(&bytes, sizeof(u_int16_t), 1, file);
+  bytes = BMP_BPP;
+	fwrite(&bytes, sizeof(u_int16_t), 1, file);
+  bytes = BMP_COMPRESS;
+	fwrite(&bytes, sizeof(u_int32_t), 1, file);
+  bytes = data.size();
+	fwrite(&bytes, sizeof(u_int32_t), 1, file);
+  u_int32_t zero[4] = {BMP_RES, BMP_RES, BMP_COLORS, BMP_COLORS};
+	fwrite(zero, sizeof(u_int32_t), 4, file);
+
+  for (auto i: data) {
+    fwrite(&(i.b), sizeof(u_int8_t), 1, file);
+    fwrite(&(i.g), sizeof(u_int8_t), 1, file);
+    fwrite(&(i.r), sizeof(u_int8_t), 1, file);
+  }
+  for (size_t i = 0; i < align; i++) fputc(0, file);
+}
+
 int gif2bmp(tGIF2BMP *gif2bmp, FILE *inputFile, FILE *outputFile) {
   // Verify the inputFile is a GIF
   if (!verify_gif_signature(inputFile)) {
@@ -174,7 +283,7 @@ int gif2bmp(tGIF2BMP *gif2bmp, FILE *inputFile, FILE *outputFile) {
   }
 
   // Process the file content
-  vector<vector<tRGB>> image = parse_gif_content(inputFile, &global_color_table);
+  vector<tRGB> image = parse_gif_content(inputFile, &global_color_table);
 
   // Match the end of file
   gif2bmp->gifSize = ftell(inputFile);
@@ -183,13 +292,8 @@ int gif2bmp(tGIF2BMP *gif2bmp, FILE *inputFile, FILE *outputFile) {
     eprintf("Unexpected file size (analyzed size doesn't match with real size)\n");
     return EXIT_FAILURE;
   }
-    //
-    // // Zápis získaných dat do výstupního souboru
-    // writeBMPData(gif2bmp);
-    //
-    // // Uložení velikosti GIF souboru pro log
-    // if(gif2bmp != NULL) gif2bmp->gifSize = gifSize;
-    //
+
+  dump_bmp(outputFile, info, image);
 
   return EXIT_SUCCESS;
 }

@@ -2,11 +2,19 @@
 #include <vector>
 #include <string>
 #include <deque>
+#include <bitset>
+#include <utility>
+#include <unordered_map>
 #include <unistd.h>
 #include <sys/types.h>
 
 #define GIF_SIGNATURE "GIF89a"
 #define GIF_SIGNATURE_LENGTH 6
+
+#define BMP_SIGNATURE "BM"
+#define BMP_HEADER_SIZE 14
+#define BMP_HEADER_OFFSET 40
+#define BMP_ALIGN 4
 
 #define BYTE sizeof(u_int8_t)
 
@@ -26,6 +34,14 @@
 
 #define APP_ID_SIZE 8
 #define eprintf(...) fprintf(stderr, ##__VA_ARGS__);
+
+#define MAX_LZW_SIZE 12
+
+#define BMP_N_PLANES 1
+#define BMP_BPP 24
+#define BMP_COMPRESS 0
+#define BMP_RES 0
+#define BMP_COLORS 0
 
 typedef struct sRGB {
   u_int8_t r, g, b;
