@@ -1,5 +1,5 @@
 CPP = g++
-CPPFLAGS = -std=c++11 -Wall
+CPPFLAGS = -std=c++11
 ZIP_NAME = kko.proj3.xcoufa09.zip
 PROG = gif2bmp
 

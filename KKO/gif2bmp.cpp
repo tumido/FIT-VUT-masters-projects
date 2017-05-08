@@ -78,6 +78,19 @@ deque<u_int8_t> get_block_data(FILE * file) {
   return data;
 }
 
+void add_to_dic(vector< std::vector<int> > & dic, const vector<int> & add, size_t size) {
+	for (size_t i = 0; i < size; i++) {
+		if (dic[i].size() == add.size()) {
+			for (size_t j = 0; j < dic[i].size(); ++j) {
+				if (dic[i][j] == add[j] && j == dic[i].size() - 1) {
+					return;
+				} else if (dic[i][j] != add[j])
+					break;
+			}
+		}
+	}
+	dic.push_back(add);
+}
 /**
  * Process the image data in a file
  * @param file       input
@@ -85,12 +98,13 @@ deque<u_int8_t> get_block_data(FILE * file) {
  * @param gct        global color map
  * @param gext       graphic extension structure
  */
-void parse_image_block(FILE * file, vector<tRGB> * image_data, vector<tRGB> * gct, tGraphicExt * gext) {
+void parse_image_block(FILE * file, vector<u_int8_t> * image_data, vector<tRGB> * gct, tGraphicExt * gext,
+vector<tRGB> ** used_ct) {
   // Read left and top position, height and width
-  u_int16_t left_pos = get_byte(file) | (get_byte(file) << BYTE);
-  u_int16_t top_pos = get_byte(file) | (get_byte(file) << BYTE);
-  u_int16_t width = get_byte(file) | (get_byte(file) << BYTE);
-  u_int16_t height = get_byte(file) | (get_byte(file) << BYTE);
+  u_int16_t skipped = get_byte(file) | (get_byte(file) << BYTE);
+  skipped = get_byte(file) | (get_byte(file) << BYTE);
+  skipped = get_byte(file) | (get_byte(file) << BYTE);
+  skipped = get_byte(file) | (get_byte(file) << BYTE);
   u_int8_t lct_flags = get_byte(file);
 
   // Parse local color table
@@ -107,95 +121,67 @@ void parse_image_block(FILE * file, vector<tRGB> * image_data, vector<tRGB> * gc
   deque<u_int8_t> data = get_block_data(file);
 
   // Select color table
-  vector<tRGB> * color_table = lct.size() ? &lct : gct;
+  *used_ct = lct.size() ? &lct : gct;
 
   // Decompress LZW
   u_int16_t clear_code = 1 << lzw_min_code_size;
-  u_int16_t lzw_real_code_size = lzw_min_code_size + 1;
   u_int16_t end_input = clear_code + 1;
-  u_int16_t last_code = clear_code - 1;
 
   // Init Dictionary
-  unordered_map<u_int16_t, vector<tRGB>> dict(clear_code);
-  for (u_int16_t j = 0; dict.size() < color_table->size(); j++ ){
-    dict.emplace(j, vector<tRGB>());
-    dict[j].push_back(color_table->at(j));
-  }
-  // Init LZW parser
-  vector<tRGB> previous_data;
-  u_int16_t code;
-  u_int16_t counter = 0;
-  u_int8_t mask = 1;
-  u_int8_t bit;
-  bool first_flag = true;
-  u_int16_t table_idx = 0;
+  vector<vector<int>> dict;
+	for (size_t i = 0; i < (*used_ct)->size(); ++i) {
+		dict.push_back(vector<int>());
+		dict[i].push_back(i);
+	}
+	dict.push_back(vector<int>());
+	dict[dict.size()-1].push_back(clear_code);
+	dict.push_back(vector<int>());
+	dict[dict.size()-1].push_back(end_input);
 
-  // Parse data
-  while (counter < data.size()) {
-    // Read the code
-    code = 0;
-    for(u_int8_t idx = 0; idx < lzw_real_code_size; idx++) {
-      bit = (data[counter] & mask) ? 1 : 0;
-      code = code | (bit << idx);
+  vector<int> phrase;
+	vector<int> tmp;
+	size_t idx = 0;
+	size_t original_size = dict.size();
+  u_int16_t lzw_size = lzw_min_code_size+1;
+  u_int8_t mask = 1;
+  u_int32_t counter = 0;
+	while (counter < data.size()){
+     // Read the code
+    idx = 0;
+		// if (idx_size > MAX_LZW_SIZE) idx_size = MAX_LZW_SIZE;
+    for(u_int8_t i = 0; i < lzw_size; i++) {
+      u_int8_t bit = (data[counter] & mask) ? 1 : 0;
+      idx = idx | (bit << i);
       mask = mask << 1;
       if (!mask) {
         counter++;
-        mask =1;
+        mask = 1;
       }
     }
 
-    // cout << to_string(code) << " :" << to_string(lzw_real_code_size) << endl;
-    if (first_flag) {
-      first_flag = false;
-      continue;
-    }
-    table_idx++;
+		if (idx < dict.size()) {
+			if (dict[idx][0] == clear_code) { dict.resize(original_size); tmp.clear(); lzw_size++; continue; }
+			if (dict[idx][0] == end_input) break;
+			phrase = dict[idx];
 
-    // End if end of input
-    if (code == end_input)
-      break;
+			for (size_t i = 0; i < phrase.size(); ++i)
+				image_data->push_back(phrase[i]);
 
-    // Clear the table
-    if (code == clear_code){
-      dict.clear();
-      lzw_real_code_size = lzw_min_code_size + 1;
-      last_code = (1 << lzw_min_code_size) - 1;
-      // printf("CLEAR %d\n", clear_code);
-      table_idx = 0;
-      dict = unordered_map<u_int16_t, vector<tRGB>>(1 << lzw_min_code_size);
-      for (u_int16_t i = 0; i < color_table->size(); i++) {
-        dict.emplace(i, vector<tRGB>());
-        dict[i].push_back(color_table->at(i));
-      }
-    }
+			vector<int> v = tmp;
+			v.push_back(phrase[0]);
+			add_to_dic(dict, v, original_size);
+		} else {
+			phrase = tmp;
+			phrase.push_back(tmp[0]);
 
-    // Make the LZW code greater
-    if (table_idx == last_code) {
-      // printf("LAST\n");
-      if (lzw_real_code_size < MAX_LZW_SIZE)
-        lzw_real_code_size++;
-      last_code = 1 << (lzw_real_code_size-1);
-      table_idx = 0;
-    }
+			for (size_t i = 0; i < phrase.size(); ++i)
+				image_data->push_back(phrase[i]);
 
-    // If the key is not in our dictionary
-    if (dict.find(code) == dict.end() && previous_data.size()) {
-      eprintf("%d\n", code);
-      dict[code] = vector<tRGB>();
-      dict[code].push_back(previous_data[0]);
-    }
+			add_to_dic(dict, phrase, original_size);
+		}
 
-    // Output data
-    image_data->insert(image_data->end(), dict[code].begin(), dict[code].end());
-    // eprintf("%ld\n", image_data->size());
-
-    // Update dictionary with new item
-    if (previous_data.size()) {
-      dict[dict.size()] = previous_data;
-      dict[dict.size()].push_back(dict[code][0]);
-    }
-    previous_data = dict[code];
-  }
+		tmp = phrase;
+	}
 }
 
 /**
@@ -261,8 +247,8 @@ void parse_app_ext(FILE * file) {
  * @param file  input
  * @param gct   global color table
  */
-vector<tRGB> parse_gif_content(FILE * file, vector<tRGB> * gct) {
-  vector<tRGB> image;
+vector<u_int8_t> parse_gif_content(FILE * file, vector<tRGB> * gct, vector<tRGB> ** used_ct) {
+  vector<u_int8_t> image;
 
   // Read separators until end
   u_int8_t sep;
@@ -271,7 +257,7 @@ vector<tRGB> parse_gif_content(FILE * file, vector<tRGB> * gct) {
     tGraphicExt g_ext = {};
     switch(sep) {
       case IMAGE_BLOCK:
-        parse_image_block(file, &image, gct, &g_ext);
+        parse_image_block(file, &image, gct, &g_ext, used_ct);
         break;
       case EXTENSION_BLOCK: {
         // Parse extensions separately
@@ -309,7 +295,7 @@ vector<tRGB> parse_gif_content(FILE * file, vector<tRGB> * gct) {
  * @param info GIF header which hold important data
  * @param data pixel data
  */
-void dump_bmp(FILE * file, tGIFInfo info, vector<tRGB> data) {
+void dump_bmp(FILE * file, tGIFInfo info, vector<u_int8_t> * data, vector<tRGB> * ct) {
   // Signature
 	fwrite(BMP_SIGNATURE, sizeof(uint16_t), 1, file);
   // Size
@@ -321,9 +307,10 @@ void dump_bmp(FILE * file, tGIFInfo info, vector<tRGB> data) {
 	bytes = 0;
 	fwrite(&bytes, sizeof(u_int32_t), 1, file);
   // Data offset
-  bytes = BMP_HEADER_OFFSET;
+  bytes = BMP_HEADER_OFFSET+BMP_HEADER_SIZE;
 	fwrite(&bytes, sizeof(u_int32_t), 1, file);
   // Header size
+  bytes = BMP_HEADER_OFFSET;
 	fwrite(&bytes, sizeof(u_int32_t), 1, file);
   // Dimensions
 	fwrite(&(info.width), sizeof(u_int32_t), 1, file);
@@ -335,19 +322,28 @@ void dump_bmp(FILE * file, tGIFInfo info, vector<tRGB> data) {
 	fwrite(&bytes, sizeof(u_int16_t), 1, file);
   bytes = BMP_COMPRESS;
 	fwrite(&bytes, sizeof(u_int32_t), 1, file);
-  bytes = data.size();
+  bytes = data->size();
 	fwrite(&bytes, sizeof(u_int32_t), 1, file);
   u_int32_t zero[4] = {BMP_RES, BMP_RES, BMP_COLORS, BMP_COLORS};
 	fwrite(zero, sizeof(u_int32_t), 4, file);
 
   // Flush data
-  for (auto i: data) {
-    fwrite(&(i.b), sizeof(u_int8_t), 1, file);
-    fwrite(&(i.g), sizeof(u_int8_t), 1, file);
-    fwrite(&(i.r), sizeof(u_int8_t), 1, file);
-  }
-  // Align file
-  for (size_t i = 0; i < align; i++) fputc(0, file);
+  for (size_t i = 1; i <= info.height; ++i) {
+		for (size_t j = 0; j < info.width; ++j) {
+			u_int16_t idx = data->at((info.height - i)*info.width + j);
+      tRGB color = ct->at(idx);
+			fwrite(&color.b, sizeof(u_int8_t), 1, file);
+      fwrite(&color.g, sizeof(u_int8_t), 1, file);
+      fwrite(&color.r, sizeof(u_int8_t), 1, file);
+		}
+
+    // Align file
+		size_t w = (3 * info.width) & 0x3;
+		for (size_t j = 0; j < 4 - w && w != 0; ++j) {
+			uint8_t p = 0x00;
+			fwrite(&p, 1, 1, file);
+		}
+	}
 }
 
 /**
@@ -375,7 +371,8 @@ int gif2bmp(tGIF2BMP *gif2bmp, FILE *inputFile, FILE *outputFile) {
   }
 
   // Process the file content
-  vector<tRGB> image = parse_gif_content(inputFile, &global_color_table);
+  vector<tRGB> * ct;
+  vector<u_int8_t> image = parse_gif_content(inputFile, &global_color_table, &ct);
 
   // Match the end of file
   gif2bmp->gifSize = ftell(inputFile);
@@ -386,7 +383,7 @@ int gif2bmp(tGIF2BMP *gif2bmp, FILE *inputFile, FILE *outputFile) {
   }
   gif2bmp->bmpSize = ftell(outputFile);
 
-  dump_bmp(outputFile, info, image);
+  dump_bmp(outputFile, info, &image, ct);
 
   return EXIT_SUCCESS;
 }

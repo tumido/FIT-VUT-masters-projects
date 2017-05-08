@@ -40,7 +40,7 @@
 #define BMP_N_PLANES 1
 #define BMP_BPP 24
 #define BMP_COMPRESS 0
-#define BMP_RES 0
+#define BMP_RES 2835
 #define BMP_COLORS 0
 
 typedef struct sRGB {
