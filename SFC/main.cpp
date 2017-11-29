@@ -1,4 +1,5 @@
 #include <string>
+#include <iostream>
 #include <signal.h>
 #include "rbm.h"
 #include "utils.h"
@@ -29,6 +30,7 @@ void exit_gracefully(int s){
   std::cout << std::endl << "Exiting RBM" << std::endl;
   exit(0);
 }
+
 
 int main() {
   srand(0);
@@ -64,7 +66,7 @@ int main() {
   for (auto x: training_data) std::cout << utils::print_array(x, count_visible) <<std::endl;
 
   header("Trained network (" + std::to_string(training_epochs) + " epochs)");
-  rbm.train(training_data, training_data.size(), learning_rate, training_epochs);
+  rbm.train(training_data, learning_rate, training_epochs);
   rbm.printState();
 
   header("Test data");

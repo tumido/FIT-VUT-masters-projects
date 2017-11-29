@@ -1,6 +1,6 @@
 CPP = g++
-CPPFLAGS = -std=c++11
-ZIP_NAME = kko.proj3.xcoufa09.zip
+CPPFLAGS = -std=c++11 -Wall -Werror
+ZIP_NAME = xcoufa09.zip
 PROG = rbm
 
 all: $(PROG)
