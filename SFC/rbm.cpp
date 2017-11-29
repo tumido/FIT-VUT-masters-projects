@@ -74,7 +74,7 @@ double RBM::propagate_from_hidden(int *hidden, int visible_idx, double bias) {
   return utils::sigmoid(pre_sigmoid_activation);
 }
 
-void RBM::train(int **input, int input_count, double rate, int epoch_count) {
+void RBM::train(std::vector<int *>input, int input_count, double rate, int epoch_count) {
   double negative_mean_hidden[count_hidden], positive_mean_hidden[count_hidden];
   double negative_mean_visible[count_visible];
   int negative_activation_hidden[count_hidden], positive_activation_hidden[count_hidden];
@@ -113,4 +113,8 @@ void RBM::run(int *input, double *output) {
 
     output[v] = utils::sigmoid(pre_sigmoid_activation);
   }
+}
+
+int RBM::getSampleWidth() {
+  return count_visible;
 }

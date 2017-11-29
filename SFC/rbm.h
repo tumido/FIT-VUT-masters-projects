@@ -25,7 +25,8 @@ public:
   RBM(size_t, size_t);
   ~RBM();
   const void printState();
-  void train(int **, int, double, int);
+  void train(std::vector<int *>, int, double, int);
   void run(int*, double*);
+  int getSampleWidth();
 };
 #endif
