@@ -124,5 +124,23 @@ namespace utils {
     std::ifstream infile(filename);
     return infile.good();
   }
+
+  /**
+   * Print heading with separator
+   * @param heading Heading text
+   */
+  inline void header(std::string heading) {
+    std::cout << std::endl << heading << std::endl << std::string(80, '-') << std::endl;
+  }
+
+  /**
+   * Initialize a value from user input
+   * @param label Message displayed to user
+   * @param data  Variable to which the value is stored
+   */
+  template<class T> inline void init_value(std::string label, T & data) {
+    std::cout << label << " (default = "<< data << "): ";
+    read_value(data);
+  }
 }
 #endif
