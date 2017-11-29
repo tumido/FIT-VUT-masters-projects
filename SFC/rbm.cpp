@@ -3,13 +3,10 @@
 const void RBM::printState() {
   std::cout << std::fixed << std::setprecision(4);
 
-  std::cout << "Bias of visible nodes (" << count_visible << "):\t[";
-  for(int x = 0; x < count_visible; x++) std::cout << bias_visible[x] << ", ";
-  std::cout << "\b\b]" << std::endl;
-
-  std::cout << "Bias of hidden nodes (" << count_hidden << "):\t[";
-  for(int x = 0; x < count_hidden; x++) std::cout << bias_hidden[x] << ", ";
-  std::cout << "\b\b]" << std::endl;
+  std::cout << "Bias of visible nodes (" << count_visible << "):\t";
+  std::cout << utils::print_array(bias_visible, count_visible) << std::endl;
+  std::cout << "Bias of hidden nodes (" << count_hidden << "):\t";
+  std::cout << utils::print_array(bias_hidden, count_hidden) << std::endl;
 
 
   std::cout << "Weights:" << std::endl << std::setw(12) << std::setfill(' ') << "|";

@@ -1,56 +1,52 @@
 #include "rbm.h"
+#include "utils.h"
+
+std::string SEPARATOR = std::string(80, '-');
+
+void header(std::string heading) {
+  std::cout << std::endl << heading << std::endl << SEPARATOR << std::endl;
+}
 
 int main() {
-  //
   srand(0);
-  //
-  // double learning_rate = 0.1;
-  // int training_epochs = 1000;
-  // int k = 1;
-  //
-  // int train_N = 6;
-  // int test_N = 2;
-  // int n_visible = 6;
-  // int n_hidden = 3;
-  //
-  // training data
-  // int training_data[6][6] = {
-  //   {1, 1, 1, 0, 0, 0},
-  //   {1, 0, 1, 0, 0, 0},
-  //   {1, 1, 1, 0, 0, 0},
-  //   {0, 0, 1, 1, 1, 0},
-  //   {0, 0, 1, 0, 1, 0},
-  //   {0, 0, 1, 1, 1, 0}
-  // };
+  std::string separator = std::string(80, '-') + "\n";
+  int count_visible, count_hidden;
+  double learning_rate = 0.1;
+  int training_epochs = 10000;
 
-
+  header("Initialization phase");
   // construct RBM
   RBM rbm(6, 3);
   rbm.printState();
 
-  // train
-  // for(int epoch=0; epoch<training_epochs; epoch++) {
-  //   for(int i=0; i<train_N; i++) {
-  //     rbm.contrastive_divergence(train_X[i], learning_rate, k);
-  //   }
-  // }
-  //
-  // // test data
-  // int test_X[2][6] = {
-  //   {1, 1, 0, 0, 0, 0},
-  //   {0, 0, 0, 1, 1, 0}
-  // };
-  // double reconstructed_X[2][6];
-  //
-  //
-  // // test
-  // for(int i=0; i<test_N; i++) {
-  //   rbm.reconstruct(test_X[i], reconstructed_X[i]);
-  //   for(int j=0; j<n_visible; j++) {
-  //     printf("%.5f ", reconstructed_X[i][j]);
-  //   }
-  //   cout << endl;
-  // }
+  // training data
+  int training_samples = 6;
+  int *training_data[6];
+  training_data[0] = new int[6]{1, 1, 1, 0, 0, 0};
+  training_data[1] = new int[6]{1, 0, 1, 0, 0, 0};
+  training_data[2] = new int[6]{1, 1, 1, 0, 0, 0};
+  training_data[3] = new int[6]{0, 0, 1, 1, 1, 0};
+  training_data[4] = new int[6]{0, 0, 1, 0, 1, 0};
+  training_data[5] = new int[6]{0, 0, 1, 1, 1, 0};
+
+  header("Training phase (" + std::to_string(training_epochs) + " epochs)");
+  rbm.train(training_data, training_samples, learning_rate, training_epochs);
+  rbm.printState();
+
+  header("Test data");
+  // test data
+  int test[2][6] = {
+    {1, 1, 0, 0, 0, 0},
+    {0, 0, 0, 1, 1, 0}
+  };
+  double output[2][6];
+
+  // test
+  for(int i=0; i<2; i++) {
+    rbm.run(test[i], output[i]);
+    std::cout << "Sample " << utils::print_array(test[i], 6) << " --> ";
+    std::cout << utils::print_array(output[i], 6) << std::endl;
+  }
 
   return 0;
 }
