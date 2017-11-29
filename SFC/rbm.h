@@ -1,15 +1,9 @@
 #include <iostream>
-#include <iterator>
 #include <iomanip>
-#include <cstring>
 #include <vector>
-#include <stdlib.h>
-#include <curses.h>
-#include <signal.h>
 #include "utils.h"
 
-#ifndef RBM_H
-#define RBM_H
+#pragma once
 
 class RBM {
 private:
@@ -58,4 +52,3 @@ public:
    */
   int getSampleWidth();
 };
-#endif

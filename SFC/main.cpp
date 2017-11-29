@@ -5,13 +5,19 @@
 #include "rbm.h"
 #include "utils.h"
 
+// default settings for the network
+#define LEARNING_RATE 0.1
+#define VISIBLE_NEURONS 6
+#define HIDDEN_NEURONS 3
+#define TRAINING_EPOCH_COUNT 10000
+
 /**
  * Provide network response for user input
  * @param rbm [description]
  */
 void run_sample(RBM & rbm) {
-  int sample[rbm.getSampleWidth()];
-  double output[rbm.getSampleWidth()];
+  int * sample = new int[rbm.getSampleWidth()];
+  double * output= new double[rbm.getSampleWidth()];
 
   // fetch user input
   std::cout << "Please enter the sample (comma separated): ";
@@ -21,6 +27,9 @@ void run_sample(RBM & rbm) {
   rbm.run(sample, output);
   std::cout << "Sample " << utils::print_array(sample, rbm.getSampleWidth()) << " --> ";
   std::cout << "Result " << utils::print_array(output, rbm.getSampleWidth()) << std::endl;
+
+  delete[] sample;
+  delete[] output;
 }
 
 /**
@@ -46,11 +55,11 @@ int main() {
 
   // init RBM settings
   utils::header("Initialization phase");
-  double learning_rate = 0.1;
+  double learning_rate = LEARNING_RATE;
   utils::init_value("Specify learning rate", learning_rate);
-  int training_epochs = 10000;
+  int training_epochs = TRAINING_EPOCH_COUNT;
   utils::init_value("Training epochs amount", training_epochs);
-  int count_visible = 6, count_hidden = 3;
+  int count_visible = VISIBLE_NEURONS, count_hidden = HIDDEN_NEURONS;
   utils::init_value("Neurons in visible layer", count_visible);
   utils::init_value("Neurons in hidden layer", count_hidden);
 

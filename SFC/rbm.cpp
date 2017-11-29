@@ -118,10 +118,12 @@ double RBM::propagate_from_hidden(int *hidden, int visible_idx, double bias) {
  * @param epoch_count Amount of training epochs
  */
 void RBM::train(std::vector<int *>input, double rate, int epoch_count) {
-  double negative_mean_hidden[count_hidden], positive_mean_hidden[count_hidden];
-  double negative_mean_visible[count_visible];
-  int negative_activation_hidden[count_hidden], positive_activation_hidden[count_hidden];
-  int negative_activation_visible[count_visible];
+  double * negative_mean_hidden  = new double[count_hidden],
+         * positive_mean_hidden  = new double[count_hidden],
+         * negative_mean_visible = new double[count_visible];
+  int * negative_activation_hidden  = new int[count_hidden],
+      * positive_activation_hidden  = new int[count_hidden],
+      * negative_activation_visible = new int[count_visible];
 
   // in each epoch train on each sample
   for (int e=0; e<epoch_count; e++) {
@@ -147,6 +149,8 @@ void RBM::train(std::vector<int *>input, double rate, int epoch_count) {
         bias_visible[v] += rate * (input[i][v] - negative_activation_visible[v]) / input.size();
     }
   }
+  delete[] negative_mean_hidden; delete[] positive_mean_hidden; delete[] negative_mean_visible;
+  delete[] negative_activation_hidden; delete[] positive_activation_hidden; delete[] negative_activation_visible;
 }
 
 /**
@@ -155,14 +159,14 @@ void RBM::train(std::vector<int *>input, double rate, int epoch_count) {
  * @param output Calculated array containing the network response
  */
 void RBM::run(int *input, double *output) {
-  double tmp_hidden[count_hidden];
+  double * tmp_hidden = new double[count_hidden];
   double pre_sigmoid_activation;
 
-  // propagate input sample to visible layer (as it would be an activation of visible layer)
+  // find out which neurons in hidden layer are activated (based on user input as it would be the visible layer)
   for(size_t h=0; h<count_hidden; h++)
     tmp_hidden[h] = propagate_from_visible(input, weights[h], bias_hidden[h]);
 
-  // compute network response probabilities
+  // compute network response based on weight for each active neuron in hidden layer
   for(size_t v=0; v<count_visible; v++) {
     pre_sigmoid_activation = bias_visible[v];
     for(size_t h=0; h<count_hidden; h++)
@@ -170,6 +174,7 @@ void RBM::run(int *input, double *output) {
 
     output[v] = utils::sigmoid(pre_sigmoid_activation);
   }
+  delete[] tmp_hidden;
 }
 
 /**

@@ -1,5 +1,5 @@
 CPP = g++
-CPPFLAGS = -std=c++11 -Wall -Werror
+CPPFLAGS = -std=c++11 -Wall -Werror -pedantic
 ZIP_NAME = xcoufa09.zip
 PROG = rbm
 

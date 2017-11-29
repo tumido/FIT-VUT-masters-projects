@@ -5,9 +5,7 @@
 #include <vector>
 #include <iostream>
 
-#ifndef UTILS_H
-#define UTILS_H
-
+#pragma once
 
 namespace utils {
   /**
@@ -143,4 +141,3 @@ namespace utils {
     read_value(data);
   }
 }
-#endif
