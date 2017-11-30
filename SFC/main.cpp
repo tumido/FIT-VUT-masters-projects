@@ -65,7 +65,7 @@ int main() {
 
   // construct RBM
   RBM rbm(count_visible, count_hidden);
-  utils::header("Intialized Restricted Boltzmann Machine");
+  utils::header("Initialized Restricted Boltzmann Machine");
   rbm.printState();
 
   // fetch training data

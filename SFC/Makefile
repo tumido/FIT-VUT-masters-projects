@@ -20,4 +20,4 @@ clean:
 	rm -vf *.o *.zip $(PROG)
 
 zip:
-	zip $(ZIP_NAME) *.cpp *.h *.pdf Makefile
+	zip $(ZIP_NAME) *.cpp *.h *.pdf *.csv Makefile

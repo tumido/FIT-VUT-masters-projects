@@ -30,10 +30,8 @@ namespace utils {
    * @return        binary activation
    */
   inline int binomial(double sample) {
-    if(sample < 0 || sample > 1) return 0;
-
-    if (sample > rand() / (RAND_MAX + 1.0))
-      return 1;
+    if (sample < 0 || sample > 1) return 0;
+    if (sample > rand() / (RAND_MAX + 1.0)) return 1;
     return 0;
   }
 
@@ -66,6 +64,7 @@ namespace utils {
       std::getline( ss, substr, ',' );
       std::istringstream value(substr);
       value >> data[i] >> std::ws;
+      if (data[i] != 0) data[i] = 1; // fix other input than 0 or 1
     }
   }
 
