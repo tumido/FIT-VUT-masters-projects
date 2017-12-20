@@ -1,0 +1,3 @@
+eml-parser
+nltk
+bs4

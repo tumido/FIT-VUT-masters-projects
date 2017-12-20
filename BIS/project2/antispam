@@ -1,0 +1,167 @@
+#!/usr/bin/env python3
+import sys
+import os
+import gzip
+from eml_parser import eml_parser
+import random
+import pickle
+import logging
+import string
+from nltk import NaiveBayesClassifier, classify
+from collections import Counter
+from bs4 import BeautifulSoup
+
+TRAIN_RUN = False
+CLASSIFIER_FILE = 'spam_classifier.pickle.gz'
+
+logging.disable(logging.CRITICAL)
+
+def read_stopwords(filename):
+    """
+    Load files with stopwords
+    """
+    with open(filename, 'r') as f:
+        stopwords = f.read()
+    return stopwords.split()
+
+STOPWORDS = read_stopwords('stop_word_cz.txt') + \
+            read_stopwords('stop_word_en.txt')
+
+
+class SpamFilter:
+    """
+    Machine Learning SPAM filter using NaiveBayesClassifier from NLTK
+    """
+    def __init__(self, classifier):
+        """
+        Dummy initializer when classifier is given
+        """
+        self.classifier = classifier
+
+    @classmethod
+    def train(cls, spam_dir, ham_dir, ratio=0.8):
+        """
+        Create trained SpamFilter object
+
+        :param spam_dir: Folder with SPAM emails for training purposes
+        :param ham_dir:  Folder with HAMs
+        :param ratio:    Ratio between train and test data for training
+        """
+        # Load SPAMS and HAMS, label and mix them
+        print('Loading files...')
+        spams = load_dataset(os.path.join(spam_dir, f) for f in os.listdir(spam_dir))
+        hams = load_dataset(os.path.join(ham_dir, f) for f in os.listdir(ham_dir))
+        labeled = [(c, 'SPAM') for f,c in spams] + [(c, 'OK') for f,c in hams]
+        random.shuffle(labeled)
+
+        # Train the classifier
+        # bond = int(len(labeled) * ratio)
+        print('Training classifier...')
+        classifier = NaiveBayesClassifier.train(labeled)
+
+        # Test for accuracy
+        # print("Accuracy: %f" % classify.accuracy(classifier, labeled[bond:]))
+        classifier.show_most_informative_features(10)
+        return cls(classifier)
+
+    def classify(self, email):
+        """
+        Return the most probable label based on the model
+
+        :param email: Featureset for email to classify
+        """
+        return self.classifier.classify(email)
+
+    def save(self, classifier_file):
+        """
+        Dump classify to a file and GZIP it
+
+        :param classifier_file: Filename for the storage
+        """
+        with gzip.open(classifier_file, 'wb') as f:
+            pickle.dump(self.classifier, f)
+
+    @classmethod
+    def load(cls, classifier_file):
+        """
+        Load classifier from a GZIP file
+
+        :param classifier_file: Object storage
+        """
+        with gzip.open(classifier_file, 'rb') as f:
+            return cls(pickle.load(f))
+
+
+def parse_html(raw_text):
+    soup = BeautifulSoup(raw_text, "html.parser")
+    try:
+        # soup.head.extract()
+        soup.body.style.extract()
+    except:
+        pass
+    return soup.get_text()
+
+
+def get_features(filename):
+    """
+    Select and collect features for a file
+
+    Text based features is collecting all words from subject and e-mail body.
+    :param filename: EML file
+    """
+    # Open and parse the file
+    if not os.path.isfile(filename):
+        raise NameError('File not found')
+    with open(filename, 'rb') as f:
+        raw_email = f.read()
+    parsed = eml_parser.decode_email_b(raw_email, include_raw_body=True)
+
+    # Get subject
+    text = parsed['header']['subject'].split()
+
+    # Parse body (if multipart, parse both)
+    for b in parsed['body']:
+        if b.get('content_type', '') == 'text/html':
+            text += parse_html(b['content']).split()
+        else:
+            text += b['content'].split()
+
+    # Remove most frequent words and return counters
+    # text = [t.lower().translate(str.maketrans({key: None for key in string.punctuation})) for t in text]
+    text = [t.lower() for t in text]
+    # return {word: True for word in text if word not in STOPWORDS}
+    return {word: count for word, count in Counter(text).items() if word not in STOPWORDS}
+
+
+def load_dataset(emails_list):
+    """
+    Load each EML file in the list and collect it's features.
+
+    :param emails_list: List of files to load
+    """
+    for filename in emails_list:
+        try:
+            email = get_features(filename)
+        except Exception as e:
+            # For some reason, file can't be loaded properly
+            print(f'{filename} - FAIL - {e}')
+            continue
+        yield (filename, email)
+
+if __name__ == '__main__':
+    if TRAIN_RUN:
+        # Training run, should not happen when handed in
+        spam_filter = SpamFilter.train('spam', 'ham')
+        spam_filter.save(CLASSIFIER_FILE)
+    else:
+        # Evaluation run
+        # Load files passed as args
+        sys.argv.pop(0)
+        emails = load_dataset(sys.argv)
+        # Load classifier
+        spam_filter = SpamFilter.load(CLASSIFIER_FILE)
+
+        # Classify each file
+        for filename, email in emails:
+            label = spam_filter.classify(email)
+            print(f'{filename} - {label}')
