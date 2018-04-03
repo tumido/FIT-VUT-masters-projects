@@ -1,0 +1,9 @@
+/* Jason Project */
+
+MAS tree_sort {
+    infrastructure: Centralised
+    agents:
+        manager;
+        node #15;
+}
+
