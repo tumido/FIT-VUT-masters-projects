@@ -1,0 +1,7 @@
+/* Jason Project */
+
+MAS lab1 {
+    infrastructure: Centralised
+    agents: tajny #16;
+}
+
