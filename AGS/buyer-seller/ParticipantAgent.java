@@ -15,7 +15,7 @@ public class ParticipantAgent extends Agent {
         dfd.setName(getAID());
         ServiceDescription sd = new ServiceDescription();
         sd.setName(getAID().getName());
-  	    sd.setType("ags-participant-type");
+        sd.setType("ags-participant-type");
         sd.addLanguages(FIPANames.ContentLanguage.FIPA_SL);
         dfd.addServices(sd);
         DFService.register(this, dfd);
@@ -55,7 +55,7 @@ class WaitAndRespondBehaviour extends CyclicBehaviour{
 
   protected void respond_to_cfp(ACLMessage msg) {
     System.out.println("Participant " + myAgent.getAID().getName() + ": Received CFP");
-    float dice = Math.random();
+    double dice = Math.random();
 
     ACLMessage response = msg.createReply();
 
@@ -65,7 +65,7 @@ class WaitAndRespondBehaviour extends CyclicBehaviour{
       response.setPerformative(ACLMessage.PROPOSE);
     } else if (dice < 0.8) {
       System.out.println("Participant " + myAgent.getAID().getName() + ": Decided to reject CFP");
-      response.setPerformative(ACLMessage.REJECT);
+      response.setPerformative(ACLMessage.REFUSE);
     } else {
       System.out.println("Participant " + myAgent.getAID().getName() + ": Decided to ignore CFP");
       kill_service();
@@ -73,14 +73,16 @@ class WaitAndRespondBehaviour extends CyclicBehaviour{
     }
 
     // Set price and delay
-    int price = Math.ceil(Math.random() * 100);
-    int delay = Math.ceil(Math.random() * msg.getContent() * 1.5);
+    int price = (int) Math.ceil(Math.random() * 100);
+    int delay = (int) Math.ceil(Math.random() * 15000);
 
-    System.out.println("Participant " + myAgent.getAID().getName() + ": Offering $" + toString(price) + ", after a delay of " + toString(delay));
-    response.setContent(price);
-    sleep(delay);
+    System.out.println("Participant " + myAgent.getAID().getName() + ": Offering $" + Integer.toString(price) + ", after a delay of " + Integer.toString(delay));
+    response.setContent(Integer.toString(price));
+    try { Thread.sleep(delay); } catch (InterruptedException ex) {}
 
-    response.send();
+    myAgent.send(response);
+
+    if (response.getPerformative() == ACLMessage.REFUSE) kill_service();
   }
 
   protected void respond_to_accepted(ACLMessage msg) {
@@ -90,11 +92,11 @@ class WaitAndRespondBehaviour extends CyclicBehaviour{
     response.setPerformative(ACLMessage.INFORM);
 
     System.out.println("Participant " + myAgent.getAID().getName() + ": Working on project");
-    sleep(5000);
+    try { Thread.sleep(5000); } catch (InterruptedException ex) {}
     System.out.println("Participant " + myAgent.getAID().getName() + ": Project done");
     response.setContent("DONE");
 
-    response.send();
+    myAgent.send(response);
     kill_service();
   }
 

@@ -1,10 +1,17 @@
 import jade.core.Agent;
 import jade.core.behaviours.*;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
+import jade.domain.DFService;
+import jade.domain.FIPAException;
 import jade.lang.acl.*;
+import java.util.Date;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Collections;
 
 public class InitiatorAgent extends Agent {
-  protected int TIMEOUT = 10000;
+  protected static int TIMEOUT = 10000;
   protected Date timeout_stamp;
   protected List<ACLMessage> proposals = new ArrayList<ACLMessage>();
 
@@ -37,12 +44,16 @@ class AskForProposalBehaviour extends OneShotBehaviour {
 
     // Search and collect all participant services
     DFAgentDescription template = new DFAgentDescription();
-    DFAgentDescription[] results = DFService.search(myAgent, template, null);
-    for (DFAgentDescription agent : results) cfp.addReceiver(agent.getName());
+    try {
+      DFAgentDescription[] results = DFService.search(myAgent, template, null);
+      for (DFAgentDescription agent : results) cfp.addReceiver(agent.getName());
+    } catch (FIPAException fe) {
+      fe.printStackTrace();
+    }
 
     // Set timeout
-    cfp.setContent(myAgent.TIMEOUT);
-    myAgent.timeout_stamp = new Date(System.currentTimeMillis() + myAgent.TIMEOUT);
+    cfp.setContent(Integer.toString(InitiatorAgent.TIMEOUT));
+    ((InitiatorAgent) myAgent).timeout_stamp = new Date(System.currentTimeMillis() + InitiatorAgent.TIMEOUT);
 
     // Distribute proposal request
     myAgent.send(cfp);
@@ -51,7 +62,7 @@ class AskForProposalBehaviour extends OneShotBehaviour {
   }
 }
 
-class WaitForProposalsBehaviour extends CyclicBehaviour {
+class WaitForProposalsBehaviour extends SimpleBehaviour {
   public void action() {
     // Listen for message
     ACLMessage msg = myAgent.receive();
@@ -61,38 +72,41 @@ class WaitForProposalsBehaviour extends CyclicBehaviour {
     }
 
     // If message contains a proposal, collect it
-    if (msg.getPerformative == ACLMessage.PROPOSE) {
+    if (msg.getPerformative() == ACLMessage.PROPOSE) {
       System.out.println("Initiator " + myAgent.getAID().getName() + ": Received proposal from " + msg.getSender().getName());
-      proposals.add(msg);
+      ((InitiatorAgent) myAgent).proposals.add(msg);
     }
   }
 
   public boolean done() {
     // Stop when timeout is reached
-    System.out.println("Initiator " + myAgent.getAID().getName() + ": No longer accepting proposals");
-    return myAgent.timeout_stamp < new Date();
+    if (new Date().after(((InitiatorAgent) myAgent).timeout_stamp)) {
+      System.out.println("Initiator " + myAgent.getAID().getName() + ": No longer accepting proposals");
+      return true;
+    }
+    return false;
   }
 }
 
 class AcceptProposalBehaviour extends OneShotBehaviour {
   public void action() {
     // Select the best offer
-    ACLMessage accept_offer = proposals.min(Comparator.comparing(ACLMessage::getContent));
-    if (!accept_offer) return;
+    ACLMessage accept_offer = Collections.min(((InitiatorAgent) myAgent).proposals, Comparator.comparing(ACLMessage::getContent));
+    if (accept_offer == null) return;
 
     // Accept the selected proposal
     ACLMessage accept_msg = accept_offer.createReply();
     accept_msg.setPerformative(ACLMessage.ACCEPT_PROPOSAL);
-    accept_msg.send();
+    myAgent.send(accept_msg);
     System.out.println("Initiator " + myAgent.getAID().getName() + ": Accepted proposal from " + accept_offer.getSender().getName());
 
     // Distribute a reject message to all other services
     ACLMessage reject_msg = new ACLMessage(ACLMessage.REJECT_PROPOSAL);
-    for (ACLMessage reject_offer: proposals) {
+    for (ACLMessage reject_offer: ((InitiatorAgent) myAgent).proposals) {
       if (reject_offer != accept_offer)
         reject_msg.addReceiver(reject_offer.getSender());
     }
-    reject_msg.send();
+    myAgent.send(reject_msg);
 
     System.out.println("Initiator " + myAgent.getAID().getName() + ": Rejected offers from others");
   }
@@ -108,7 +122,7 @@ class WaitForProjectDoneBehaviour extends CyclicBehaviour {
     }
 
     // If message contains a information about complete project, collect it
-    if (msg.getPerformative == ACLMessage.INFORM) {
+    if (msg.getPerformative() == ACLMessage.INFORM) {
       System.out.println("Initiator " + myAgent.getAID().getName() + ": Received complated project with message: " + msg.getContent());
       System.out.println("Initiator " + myAgent.getAID().getName() + ": Exiting");
       myAgent.doDelete();
