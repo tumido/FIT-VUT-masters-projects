@@ -1,7 +1,7 @@
 CPP = g++
 CPPFLAGS = -std=c++11
-ZIP_NAME = kko.proj3.xcoufa09.zip
-PROG = gif2bmp
+ZIP_NAME = kko.proj2.xcoufa09.zip
+PROG = bwted
 
 all: $(PROG)
 
