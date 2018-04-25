@@ -9,7 +9,7 @@ int BWTEncoding(tBWTED *bwted, FILE *inputFile, FILE *outputFile) {
   char mtf_buffer[CHAR_VALUES];
 
   char tmp;
-  positioned_string suffixes[BLOCK_SIZE];
+  tPositionedString suffixes[BLOCK_SIZE];
 
   std::string bwt_string, mtf_string, rle_string;
   bwt_string.reserve(BLOCK_SIZE+1);
@@ -28,10 +28,11 @@ int BWTEncoding(tBWTED *bwted, FILE *inputFile, FILE *outputFile) {
     // Build suffix array
     for (size_t i = 0; i < length; i++) {
       suffixes[i].position = i;
-      suffixes[i].string = &buffer[i];
+      suffixes[i].string = "";
+      for (size_t j = 0; j < length; j++) suffixes[i].string.push_back(buffer[(i+j) % length]);
     }
-    std::sort(suffixes, suffixes+length, [](const positioned_string a, const positioned_string b)
-      { return (std::string) a.string < (std::string) b.string; });
+    std::stable_sort(suffixes, suffixes+length, [](const tPositionedString a, const tPositionedString b)
+      { return a.string < b.string; });
 
     // Create BWT string from the suffixes
     for (size_t i = 0; i < length; i++) {
@@ -110,7 +111,7 @@ int BWTDecoding(tBWTED *bwted, FILE *inputFile, FILE *outputFile) {
   char mtf_buffer[CHAR_VALUES];
 
   char tmp;
-  positioned_string suffixes[BLOCK_SIZE+1];
+  tPositionedString suffixes[BLOCK_SIZE+1];
 
   std::string bwt_string, mtf_string, original_string;
   bwt_string.reserve(BLOCK_SIZE+1);
@@ -161,7 +162,7 @@ int BWTDecoding(tBWTED *bwted, FILE *inputFile, FILE *outputFile) {
       suffixes[i].position = i;
       suffixes[i].string = &bwt_string[i];
     }
-    std::stable_sort(suffixes, suffixes+length, [](const positioned_string a, const positioned_string b)
+    std::stable_sort(suffixes, suffixes+length, [](const tPositionedString a, const tPositionedString b)
       { return a.string[0] < b.string[0]; });
 
     // BWT decode

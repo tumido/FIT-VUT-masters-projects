@@ -21,8 +21,8 @@ typedef struct {
 
 typedef struct {
   u_int32_t position;
-  char * string;
-} positioned_string;
+  std::string string;
+} tPositionedString;
 
 /**
  * BTW encode
