@@ -1,87 +1,144 @@
 #include "bwted.h"
 
+void encodeBWT(char * buffer, size_t length, u_int32_t * index, std::string & output) {
+  tPositionedString permutations[BLOCK_SIZE];
+
+  // Build permutations array
+  for (size_t i = 0; i < length; i++) {
+    permutations[i].position = i;
+    permutations[i].string = "";
+    for (size_t j = 0; j < length; j++) permutations[i].string.push_back(buffer[(i+j) % length]);
+  }
+  std::stable_sort(permutations, permutations+length, [](const tPositionedString a, const tPositionedString b)
+    { return a.string < b.string; });
+
+  // Create BWT string from the permutations based on the index
+  for (size_t i = 0; i < length; i++) {
+    if (permutations[i].position == 0) {
+      output[i] = buffer[length-1];
+      *index = i;
+    } else {
+      output[i] = buffer[permutations[i].position-1];
+    }
+  }
+}
+
+void decodeBWT(std::string & input, size_t length, u_int32_t index, std::string & output) {
+  tPositionedString permutations[BLOCK_SIZE];
+
+  // Build suffix array
+  for (size_t i = 0; i < length; i++) {
+    permutations[i].position = i;
+    permutations[i].string = &input[i];
+  }
+  std::stable_sort(permutations, permutations+length, [](const tPositionedString a, const tPositionedString b)
+    { return a.string[0] < b.string[0]; });
+
+  // Take index and decode from permutations
+  for (size_t i = 0; i < length; i++) {
+    index = permutations[index].position;
+    output.push_back(input[index]);
+  }
+}
+
+void encodeMTF(std::string & input, size_t length, std::string & output) {
+  char mtf_buffer[CHAR_VALUES] = {0};
+  char tmp;
+  size_t ab_idx;
+
+  for (size_t i = 0; i < CHAR_VALUES; i++) mtf_buffer[i] = (char) i;
+
+  for (size_t i = 0; i < length; i++) {
+    // Find the letter index in alphabetical map
+    for (ab_idx = 0; ab_idx < CHAR_VALUES; ab_idx++)
+      if (input[i] == mtf_buffer[ab_idx]) break;
+
+    // Remember the index in output
+    tmp = input[i];
+    output[i] = ab_idx;
+
+    // Reorder mtf_buffer moving the letter to front
+    for (size_t i = ab_idx; i > 0; i--) mtf_buffer[i] = mtf_buffer[i-1];
+    mtf_buffer[0] = tmp;
+  }
+}
+
+void decodeMTF(std::string & input, size_t length, std::string & output) {
+  char mtf_buffer[CHAR_VALUES] = {0};
+  size_t ab_idx;
+
+  for (size_t i = 0; i < CHAR_VALUES; i++) mtf_buffer[i] = (char) i;
+
+  for (size_t i = 0; i < length; i++) {
+    ab_idx = input[i];
+    output[i] = mtf_buffer[ab_idx];
+    for (size_t j = ab_idx; j > 0; j--) mtf_buffer[j] = mtf_buffer[j-1];
+    mtf_buffer[0] = output[i];
+  }
+}
+
+void encodeRLE(std::string & input, size_t length, std::string & output) {
+  u_int8_t rle_counter;
+  char tmp;
+
+  for (size_t i = 0; i < length; i++) {
+    // Take letter and count the same consecutive
+    rle_counter = 1;
+    tmp = input[i];
+    while ((i+1 < length) && input[i] == input[i+1]) { rle_counter++; i++; }
+
+    // Convert:
+    // x      -> x
+    // xx     -> xx0
+    // xxxxxx -> xx4
+    if (rle_counter == 1) {
+      output.push_back(tmp);
+    } else {
+      output.push_back(tmp);
+      output.push_back(tmp);
+      output.push_back((char) rle_counter);
+    }
+  }
+}
+
+void decodeRLE(char * input, size_t * length, std::string & output) {
+  for (size_t i = 0; i < *length; i++) {
+    if ((i+1 < *length) && input[i] == input[i+1]) {
+      for (u_int8_t rle_counter = input[i+2]; rle_counter > 0; rle_counter--) {
+        output.push_back(input[i]);
+      }
+      i = i+2;
+    } else {
+      output.push_back(input[i]);
+    }
+  }
+  *length = output.length();
+}
+
 int BWTEncoding(tBWTED *bwted, FILE *inputFile, FILE *outputFile) {
   bwted->uncodedSize = bwted->codedSize = 0;
   size_t length = 0;
   u_int32_t original_index = 0;
 
   char buffer[BLOCK_SIZE];
-  char mtf_buffer[CHAR_VALUES];
-
-  char tmp;
-  tPositionedString suffixes[BLOCK_SIZE];
-
   std::string bwt_string, mtf_string, rle_string;
   bwt_string.reserve(BLOCK_SIZE+1);
   mtf_string.reserve(BLOCK_SIZE+1);
 
-  u_int8_t rle_counter;
-
   while ((length = fread(&buffer, sizeof(char), BLOCK_SIZE, inputFile)) != 0) {
     // Update log counter
     bwted->uncodedSize += length;
+    bwt_string = mtf_string = rle_string = "";
 
     printDebug("Original", buffer, length);
 
-    bwt_string = mtf_string = rle_string = "";
+    // BWT -> MTF -> RLE
+    encodeBWT(buffer, length, &original_index, bwt_string);
+    encodeMTF(bwt_string, length, mtf_string);
+    encodeRLE(mtf_string, length, rle_string);
 
-    // Build suffix array
-    for (size_t i = 0; i < length; i++) {
-      suffixes[i].position = i;
-      suffixes[i].string = "";
-      for (size_t j = 0; j < length; j++) suffixes[i].string.push_back(buffer[(i+j) % length]);
-    }
-    std::stable_sort(suffixes, suffixes+length, [](const tPositionedString a, const tPositionedString b)
-      { return a.string < b.string; });
-
-    // Create BWT string from the suffixes
-    for (size_t i = 0; i < length; i++) {
-      if (suffixes[i].position == 0) {
-        bwt_string[i] = buffer[length-1];
-        original_index = i;
-      } else {
-        bwt_string[i] = buffer[suffixes[i].position-1];
-      }
-    }
     printDebug("BWT encoded", bwt_string.c_str(), length);
-
-    // MTF encoding
-    for (size_t i = 0; i < CHAR_VALUES; i++) mtf_buffer[i] = (char) i;
-    size_t ab_idx;
-    for (size_t i = 0; i < length; i++) {
-      // Find the letter index in alphabetical map
-      for (ab_idx = 0; ab_idx < CHAR_VALUES; ab_idx++)
-        if (bwt_string[i] == mtf_buffer[ab_idx]) break;
-
-      // Remember the index in mtf_string
-      tmp = bwt_string[i];
-      mtf_string[i] = ab_idx;
-      // Reorder mtf_buffer moving the letter to front
-      for (size_t i = ab_idx; i > 0; i--) mtf_buffer[i] = mtf_buffer[i-1];
-      mtf_buffer[0] = tmp;
-
-    }
     printDebug("MTF encoded", mtf_string.c_str(), length);
-
-    // RLE-0 encoding
-    for (size_t i = 0; i < length; i++) {
-      // Take letter and count the same consecutive
-      rle_counter = 1;
-      tmp = mtf_string[i];
-      while ((i+1 < length) && mtf_string[i] == mtf_string[i+1]) { rle_counter++; i++; }
-
-      // Convert:
-      // x      -> x
-      // xx     -> xx0
-      // xxxxxx -> xx4
-      if (rle_counter == 1) {
-        rle_string.push_back(tmp);
-      } else {
-        rle_string.push_back(tmp);
-        rle_string.push_back(tmp);
-        rle_string.push_back((char) rle_counter);
-      }
-    }
     printDebug("RLE encoded", rle_string.c_str(), rle_string.length());
 
     // Separate chunks by delimiter (ASCII 255 by choice)
@@ -96,7 +153,6 @@ int BWTEncoding(tBWTED *bwted, FILE *inputFile, FILE *outputFile) {
 
     // Null buffers
     memset(buffer, 0, sizeof(char)*(BLOCK_SIZE+1));
-    memset(mtf_buffer, 0, sizeof(char)*(CHAR_VALUES+1));
   }
 
   return 0;
@@ -108,10 +164,7 @@ int BWTDecoding(tBWTED *bwted, FILE *inputFile, FILE *outputFile) {
   u_int32_t original_index = 0;
 
   char buffer[BLOCK_SIZE+1];
-  char mtf_buffer[CHAR_VALUES];
-
   char tmp;
-  tPositionedString suffixes[BLOCK_SIZE+1];
 
   std::string bwt_string, mtf_string, original_string;
   bwt_string.reserve(BLOCK_SIZE+1);
@@ -130,47 +183,17 @@ int BWTDecoding(tBWTED *bwted, FILE *inputFile, FILE *outputFile) {
       length++;
     }
     bwted->codedSize += length + sizeof(DELIMITER);
+
     printDebug("Coded", buffer, length);
 
-    // RLE-0 decode
-    for (size_t i = 0; i < length; i++) {
-      if ((i+1 < length) && buffer[i] == buffer[i+1]) {
-        for (u_int8_t rle_counter = buffer[i+2]; rle_counter > 0; rle_counter--) {
-          mtf_string.push_back(buffer[i]);
-        }
-        i = i+2;
-      } else {
-        mtf_string.push_back(buffer[i]);
-      }
-    }
-    length = mtf_string.length();
+    // RLE-0 -> MTF -> BWT
+    decodeRLE(buffer, &length, mtf_string);
+    decodeMTF(mtf_string, length, bwt_string);
+    decodeBWT(bwt_string, length, original_index, original_string);
+
+    // DEBUG print
     printDebug("RLE decoded", mtf_string.c_str(), length);
-
-    // MTF decode
-    for (size_t i = 0; i < CHAR_VALUES; i++) mtf_buffer[i] = (char) i;
-    size_t ab_idx;
-    for (size_t i = 0; i < length; i++) {
-      ab_idx = mtf_string[i];
-      bwt_string[i] = mtf_buffer[ab_idx];
-      for (size_t j = ab_idx; j > 0; j--) mtf_buffer[j] = mtf_buffer[j-1];
-      mtf_buffer[0] = bwt_string[i];
-    }
     printDebug("MTF decoded", bwt_string.c_str(), length);
-
-    // Build suffix array
-    for (size_t i = 0; i < length; i++) {
-      suffixes[i].position = i;
-      suffixes[i].string = &bwt_string[i];
-    }
-    std::stable_sort(suffixes, suffixes+length, [](const tPositionedString a, const tPositionedString b)
-      { return a.string[0] < b.string[0]; });
-
-    // BWT decode
-    for (size_t i = 0; i < length; i++) {
-      original_index = suffixes[original_index].position;
-      original_string.push_back(bwt_string[original_index]);
-    }
-    //original_string[length-1] = '\0';
     printDebug("BWT decoded", original_string.c_str(), length);
 
     // Write to output file
@@ -181,7 +204,6 @@ int BWTDecoding(tBWTED *bwted, FILE *inputFile, FILE *outputFile) {
 
     // Null buffers
     memset(buffer, 0, sizeof(char)*(BLOCK_SIZE+1));
-    memset(mtf_buffer, 0, sizeof(char)*(CHAR_VALUES+1));
   }
 
   return 0;
