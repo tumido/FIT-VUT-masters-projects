@@ -1,5 +1,12 @@
 #include "bwted.h"
 
+/**
+ * Encode via Burrows-Wheeler transformation
+ * @param buffer Input text buffer
+ * @param length Input text length
+ * @param index  The correct permutation index is stored here
+ * @param output Encoded string
+ */
 void encodeBWT(char * buffer, size_t length, u_int32_t * index, std::string & output) {
   tPositionedString permutations[BLOCK_SIZE];
 
@@ -23,6 +30,13 @@ void encodeBWT(char * buffer, size_t length, u_int32_t * index, std::string & ou
   }
 }
 
+/**
+ * Decode via Burrows-Wheeler transformation
+ * @param input  String on encoded text
+ * @param length Correct text length
+ * @param index  Original permutation index
+ * @param output Plaintext string returned
+ */
 void decodeBWT(std::string & input, size_t length, u_int32_t index, std::string & output) {
   tPositionedString permutations[BLOCK_SIZE];
 
@@ -41,6 +55,12 @@ void decodeBWT(std::string & input, size_t length, u_int32_t index, std::string 
   }
 }
 
+/**
+ * Encode via Move-to-front
+ * @param input  String to transform
+ * @param length Correct length of the string
+ * @param output Transformed string
+ */
 void encodeMTF(std::string & input, size_t length, std::string & output) {
   char mtf_buffer[CHAR_VALUES] = {0};
   char tmp;
@@ -63,6 +83,12 @@ void encodeMTF(std::string & input, size_t length, std::string & output) {
   }
 }
 
+/**
+ * Decode Move-to-front transformation
+ * @param input  String which should be transformed
+ * @param length Correct length of the message
+ * @param output Decoded sequence
+ */
 void decodeMTF(std::string & input, size_t length, std::string & output) {
   char mtf_buffer[CHAR_VALUES] = {0};
   size_t ab_idx;
@@ -77,6 +103,18 @@ void decodeMTF(std::string & input, size_t length, std::string & output) {
   }
 }
 
+/**
+ * Encode and compress via RLE
+ *
+ * Map data using this transformation:
+ * x      -> x
+ * xx     -> xx0
+ * xxxxxx -> xx4
+ *
+ * @param input  String to compress
+ * @param length Length of the input
+ * @param output Compressed string
+ */
 void encodeRLE(std::string & input, size_t length, std::string & output) {
   u_int8_t rle_counter;
   char tmp;
@@ -87,10 +125,7 @@ void encodeRLE(std::string & input, size_t length, std::string & output) {
     tmp = input[i];
     while ((i+1 < length) && input[i] == input[i+1]) { rle_counter++; i++; }
 
-    // Convert:
-    // x      -> x
-    // xx     -> xx0
-    // xxxxxx -> xx4
+    // Convert
     if (rle_counter == 1) {
       output.push_back(tmp);
     } else {
@@ -101,6 +136,17 @@ void encodeRLE(std::string & input, size_t length, std::string & output) {
   }
 }
 
+/**
+ * Decode from RLE
+ *
+ * Decode following pattern:
+ * x   -> x
+ * xx0 -> xx
+ * xx4 -> xxxxxx
+ * @param input  RLE encoded string
+ * @param length Current string length, updated to the unpacked length
+ * @param output Decodec message
+ */
 void decodeRLE(char * input, size_t * length, std::string & output) {
   for (size_t i = 0; i < *length; i++) {
     if ((i+1 < *length) && input[i] == input[i+1]) {
@@ -116,7 +162,6 @@ void decodeRLE(char * input, size_t * length, std::string & output) {
 }
 
 int BWTEncoding(tBWTED *bwted, FILE *inputFile, FILE *outputFile) {
-  bwted->uncodedSize = bwted->codedSize = 0;
   size_t length = 0;
   u_int32_t original_index = 0;
 
@@ -159,7 +204,6 @@ int BWTEncoding(tBWTED *bwted, FILE *inputFile, FILE *outputFile) {
 }
 
 int BWTDecoding(tBWTED *bwted, FILE *inputFile, FILE *outputFile) {
-  bwted->codedSize = bwted->uncodedSize = 0;
   size_t length = 0;
   u_int32_t original_index = 0;
 

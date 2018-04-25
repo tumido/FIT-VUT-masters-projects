@@ -11,10 +11,18 @@ $(PROG): $(PROG).o main.cpp
 %.o: %.cpp
 	$(CPP) $(CPPFLAGS) -c $^ -o $@
 
-.PHONY: clean zip run
+.PHONY: encode decode zip clean
+.SILENT: encode decode
 
-run: $(PROG)
-	./$^
+encode: $(PROG)
+	./$^ -c -l /tmp/bwted.log -o /tmp/bwted.encoded
+	echo -e "\n\nLOG display"
+	cat /tmp/bwted.log
+
+decode: $(PROG)
+	./$^ -x -l /tmp/bwted.log -i /tmp/bwted.encoded
+	echo -e "\n\nLOG display"
+	cat /tmp/bwted.log
 
 clean:
 	rm -vf *.o *.zip $(PROG)
