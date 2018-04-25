@@ -9,6 +9,7 @@
 
 #define BLOCK_SIZE 10240
 #define CHAR_VALUES 256
+#define DELIMITER (char)CHAR_VALUES-1
 
 /**
  * BTW encoding/decoding log report
