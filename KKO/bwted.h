@@ -6,10 +6,14 @@
 #include <iostream>
 #include <cstring>
 #include <string>
+#include <vector>
+#include <utility>
+#include <deque>
+#include "btree.h"
 
 #define BLOCK_SIZE 10240
 #define CHAR_VALUES 256
-#define DELIMITER (char)CHAR_VALUES-1
+#define DELIMITER 0xFF
 
 /**
  * BTW encoding/decoding log report
@@ -23,6 +27,11 @@ typedef struct {
   u_int32_t position;
   std::string string;
 } tPositionedString;
+
+typedef struct {
+  char symbol;
+  u_int32_t count;
+} tFreqSymbol;
 
 /**
  * BTW encode

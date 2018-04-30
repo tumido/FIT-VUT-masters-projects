@@ -161,12 +161,119 @@ void decodeRLE(char * input, size_t * length, std::string & output) {
   *length = output.length();
 }
 
+btree * build_huff_tree(std::vector<std::pair<char, u_int16_t>>& freq_map) {
+  // Build the B-tree
+  std::deque<btree*> all_trees;
+  for (auto it = freq_map.begin(); it != freq_map.end(); it++) {
+    char letter = it->first;
+    u_int32_t count = it->second;
+    all_trees.push_back(new btree(letter, count));
+  }
+  // Insert special delimiter symbol
+  all_trees.push_back(new btree(DELIMITER, 1));
+
+  // Join trees until only one is formed
+  while (all_trees.size() > 1) {
+    btree * a = all_trees.front();
+    all_trees.pop_front();
+    btree * b = all_trees.front();
+    all_trees.pop_front();
+
+    all_trees.push_back(a->join_tree(b));
+
+    // Sort vector of trees so the lower frequencies are first;
+    std::sort(all_trees.begin(), all_trees.end(),
+      [](btree * a, btree * b) {
+        if (a->get_root()->count == b->get_root()->count) return a->get_root()->label < b->get_root()->label;
+        return a->get_root()->count < b->get_root()->count;
+      }
+    );
+  }
+
+  all_trees.front()->codify_nodes();
+  return all_trees.front();
+}
+
+void encodeHUFF(std::string & input, size_t length, std::string & output) {
+  // Count absolute frequency
+  std::vector<std::pair<char, u_int16_t>> freq_map;
+
+  for (size_t i = 0; i < length; i++) {
+    auto it = std::find_if( freq_map.begin(), freq_map.end(),
+      [&input,&i](const std::pair<char, u_int16_t>& e){ return e.first == input[i];}
+    );
+
+    if (it == freq_map.end())
+      freq_map.push_back(std::pair<char, u_int16_t>(input[i], 1));
+    else
+      it->second += 1;
+  }
+
+  // Sort (from lowest to max freq)
+  std::sort(freq_map.begin(), freq_map.end(),
+    [](const std::pair<char, u_int16_t>& e, const std::pair<char, u_int16_t>& f) {
+      if (e.second == f.second) return e.first < f.first;
+      return e.second < f.second;
+    }
+  );
+  // Save the counts in output for B-tree reconstruction
+  for (auto it = freq_map.begin(); it != freq_map.end(); it++) {
+    output.push_back(it->first);
+    output.push_back(it->second >> BYTE);
+    output.push_back(it->second);
+  }
+  // Add 2 bytes delimiter (255 by choice)
+  output.push_back(DELIMITER);
+  output.push_back(DELIMITER);
+
+
+  // Build the B-tree
+  btree * tree = build_huff_tree(freq_map);
+
+  // Encode input string
+  u_int8_t counter = 0;
+  u_int16_t new_byte = 0;
+  char letter;
+  for (size_t i = 0; i <= length; i++) {
+    letter = (i == length) ? DELIMITER : input[i];
+    node * leaf = tree->search(letter);
+    // std::cout << input[i] << ": " << leaf->label << ", " << std::bitset<BYTE>(leaf->code) << " (" << std::bitset<BYTE>(leaf->mask) << ")" <<std::endl;
+    new_byte <<= leaf->mask.count();
+    new_byte |= (leaf->code & leaf->mask).to_ulong();
+    counter += leaf->mask.count();
+    // std::cout << "counter: " << unsigned(counter) <<std::endl;
+    if (counter >= BYTE) {
+      output.push_back(new_byte >> (counter - BYTE));
+      // std::cout << std::bitset<BYTE>(new_byte >> (counter - BYTE)) << std::endl;
+      new_byte = 0 | (new_byte & (leaf->mask >> (leaf->mask.count() + BYTE - counter)).to_ulong());
+      counter -= BYTE;
+    }
+  }
+
+  // Encode end
+  if (counter < BYTE) {
+    new_byte <<= (BYTE-counter);
+    new_byte |= (DELIMITER >> counter);
+    output.push_back(new_byte);
+  }
+  // std::cout << std::bitset<BYTE>(new_byte) << std::endl;
+
+  // Add 3 bytes delimiter (255 by choice)
+  output.push_back(DELIMITER);
+  output.push_back(DELIMITER);
+  output.push_back(DELIMITER);
+
+  // for (auto it = all_trees.begin(); it != all_trees.end(); it++) {
+  //   (*it)->print();
+  // }
+}
+
 int BWTEncoding(tBWTED *bwted, FILE *inputFile, FILE *outputFile) {
   size_t length = 0;
   u_int32_t original_index = 0;
 
   char buffer[BLOCK_SIZE];
-  std::string bwt_string, mtf_string, rle_string;
+  std::string bwt_string, mtf_string, rle_string, huff_string;
   bwt_string.reserve(BLOCK_SIZE+1);
   mtf_string.reserve(BLOCK_SIZE+1);
 
@@ -177,24 +284,23 @@ int BWTEncoding(tBWTED *bwted, FILE *inputFile, FILE *outputFile) {
 
     printDebug("Original", buffer, length);
 
-    // BWT -> MTF -> RLE
+    // BWT -> MTF -> RLE -> HUFF
     encodeBWT(buffer, length, &original_index, bwt_string);
     encodeMTF(bwt_string, length, mtf_string);
     encodeRLE(mtf_string, length, rle_string);
+    encodeHUFF(rle_string, rle_string.length(), huff_string);
 
     printDebug("BWT encoded", bwt_string.c_str(), length);
     printDebug("MTF encoded", mtf_string.c_str(), length);
     printDebug("RLE encoded", rle_string.c_str(), rle_string.length());
-
-    // Separate chunks by delimiter (ASCII 255 by choice)
-    rle_string.push_back(DELIMITER);
+    printDebug("HUF encoded", huff_string.c_str(), huff_string.length());
 
     // Write to output file
     fwrite(&original_index, sizeof(u_int32_t), 1, outputFile);
-    fwrite(rle_string.c_str(), sizeof(char), rle_string.length(), outputFile);
+    fwrite(huff_string.c_str(), sizeof(char), huff_string.length(), outputFile);
 
     // Update log
-    bwted->codedSize += rle_string.length() + sizeof(original_index);
+    bwted->codedSize += huff_string.length() + sizeof(original_index);
 
     // Null buffers
     memset(buffer, 0, sizeof(char)*(BLOCK_SIZE+1));

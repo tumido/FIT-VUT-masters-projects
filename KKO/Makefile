@@ -5,7 +5,7 @@ PROG = bwted
 
 all: $(PROG)
 
-$(PROG): $(PROG).o main.cpp
+$(PROG): $(PROG).o btree.o main.cpp
 	$(CPP) $(CPPFLAGS) $^ -o $@
 
 %.o: %.cpp
