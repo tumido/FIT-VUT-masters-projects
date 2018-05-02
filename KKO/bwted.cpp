@@ -199,10 +199,12 @@ void encodeHUFF(std::string & input, size_t length, std::string & output) {
   std::vector<std::pair<char, u_int16_t>> freq_map;
 
   for (size_t i = 0; i < length; i++) {
+    // Locate the symbol in frequency map
     auto it = std::find_if( freq_map.begin(), freq_map.end(),
       [&input,&i](const std::pair<char, u_int16_t>& e){ return e.first == input[i];}
     );
 
+    // Update value
     if (it == freq_map.end())
       freq_map.push_back(std::pair<char, u_int16_t>(input[i], 1));
     else
@@ -237,11 +239,19 @@ void encodeHUFF(std::string & input, size_t length, std::string & output) {
   u_int32_t new_byte = 0;
   char letter;
   for (size_t i = 0; i <= length; i++) {
+    // If this is the last round, encode DELIMITER character
     letter = (i == length) ? DELIMITER : input[i];
+
+    // Find symbol in the tree
     node * leaf = tree->search(letter);
+
+    // Update the new byte with encoded value
     new_byte <<= leaf->mask.count();
     new_byte |= (leaf->code & leaf->mask).to_ulong();
+
+    // Guard for full byte
     counter += leaf->mask.count();
+    // If the encoded buffer exceeded 1 byte, store the value in output vector and do so until the buffer is full below 1 byte
     while (counter >= WORD) {
       output.push_back(new_byte >> (counter - WORD));
       new_byte &= (leaf->mask >> (leaf->mask.count() + WORD - counter)).to_ulong();
@@ -280,6 +290,7 @@ void decodeHUFF(std::string & header, std::string & content, std::string & outpu
   std::bitset<DWORD> mask = 0;
   size_t letter_counter = 0, bit_counter = 0;
   std::bitset<WORD> letter = content[0];
+
   while (true) {
     // Take one bit from input
     code = (code << 1) | std::bitset<DWORD>(letter[WORD-1]);
@@ -291,7 +302,10 @@ void decodeHUFF(std::string & header, std::string & content, std::string & outpu
     // Find if the code means something
     node * decoded = tree->search(code, mask);
     if (decoded != NULL) {
+      // If the code means DELIMITER, end the run
       if (*(decoded->label.c_str()) == (char)DELIMITER) break;
+
+      // Remember and reset otherwise
       output.push_back(*(decoded->label.c_str()));
       // printDebug("Partial", output.c_str(), output.length());
       code = 0;
@@ -305,7 +319,6 @@ void decodeHUFF(std::string & header, std::string & content, std::string & outpu
       letter = content[letter_counter];
     }
   }
-  // std::cout << "here" << std::endl;
 }
 
 int BWTEncoding(tBWTED *bwted, FILE *inputFile, FILE *outputFile) {
