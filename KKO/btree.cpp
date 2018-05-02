@@ -58,22 +58,19 @@ node * btree::search(char letter) {
 	return search(label, root);
 }
 
-node * btree::search(std::bitset<BYTE> code, std::bitset<BYTE> mask, node * leaf) {
+node * btree::search(std::bitset<DWORD> code, std::bitset<DWORD> mask, node * leaf) {
 	if (leaf == NULL)
 		return NULL;
 
-	if (mask.count() < leaf->mask.count())
-		if ()
-			return search(code, mask, leaf->left);
-		else
-			return search(code, mask, leaf->right);
-
-	if (mask == leaf->mask && code == leaf->code)
+	if (mask == leaf->mask && code == leaf->code && leaf->label.length() == 1)
 		return leaf;
 
-	return NULL;
+	if (code[mask.count() - 1 - leaf->mask.count()] == 0)
+		return search(code, mask, leaf->left);
+	else
+		return search(code, mask, leaf->right);
 }
-node * btree::search(std::bitset<BYTE> code, std::bitset<BYTE> mask) {
+node * btree::search(std::bitset<DWORD> code, std::bitset<DWORD> mask) {
 	return search(code, mask, root);
 }
 
@@ -86,12 +83,12 @@ void btree::codify_nodes() {
 void btree::codify_nodes(node * leaf) {
 	if (leaf->left != NULL) {
 		leaf->left->code = (leaf->code << 1);
-		leaf->left->mask = (leaf->mask << 1) | std::bitset<BYTE>(1);
+		leaf->left->mask = (leaf->mask << 1) | std::bitset<DWORD>(1);
 		codify_nodes(leaf->left);
 	}
 	if (leaf->right != NULL) {
-		leaf->right->code = (leaf->code << 1) | std::bitset<BYTE>(1);
-		leaf->right->mask = (leaf->mask << 1) | std::bitset<BYTE>(1);
+		leaf->right->code = (leaf->code << 1) | std::bitset<DWORD>(1);
+		leaf->right->mask = (leaf->mask << 1) | std::bitset<DWORD>(1);
 		codify_nodes(leaf->right);
 	}
 }

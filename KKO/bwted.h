@@ -11,7 +11,7 @@
 #include <deque>
 #include "btree.h"
 
-#define BLOCK_SIZE 10240
+#define BLOCK_SIZE 300
 #define CHAR_VALUES 256
 #define DELIMITER 0xFF
 

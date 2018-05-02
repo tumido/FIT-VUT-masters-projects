@@ -147,9 +147,9 @@ void encodeRLE(std::string & input, size_t length, std::string & output) {
  * @param length Current string length, updated to the unpacked length
  * @param output Decodec message
  */
-void decodeRLE(char * input, size_t * length, std::string & output) {
-  for (size_t i = 0; i < *length; i++) {
-    if ((i+1 < *length) && input[i] == input[i+1]) {
+void decodeRLE(std::string & input, size_t * length, std::string & output) {
+  for (size_t i = 0; i < input.length(); i++) {
+    if ((i+1 < input.length()) && input[i] == input[i+1]) {
       for (u_int8_t rle_counter = input[i+2]; rle_counter > 0; rle_counter--) {
         output.push_back(input[i]);
       }
@@ -219,7 +219,7 @@ void encodeHUFF(std::string & input, size_t length, std::string & output) {
   // Save the counts in output for B-tree reconstruction
   for (auto it = freq_map.begin(); it != freq_map.end(); it++) {
     output.push_back(it->first);
-    output.push_back(it->second >> BYTE);
+    output.push_back(it->second >> WORD);
     output.push_back(it->second);
   }
   // Add 2 bytes delimiter (255 by choice)
@@ -229,6 +229,7 @@ void encodeHUFF(std::string & input, size_t length, std::string & output) {
 
   // Build the B-tree
   btree * tree = build_huff_tree(freq_map);
+  // tree->print();
 
   // Encode input string
   u_int8_t counter = 0;
@@ -237,35 +238,71 @@ void encodeHUFF(std::string & input, size_t length, std::string & output) {
   for (size_t i = 0; i <= length; i++) {
     letter = (i == length) ? DELIMITER : input[i];
     node * leaf = tree->search(letter);
-    // std::cout << input[i] << ": " << leaf->label << ", " << std::bitset<BYTE>(leaf->code) << " (" << std::bitset<BYTE>(leaf->mask) << ")" <<std::endl;
     new_byte <<= leaf->mask.count();
     new_byte |= (leaf->code & leaf->mask).to_ulong();
     counter += leaf->mask.count();
-    // std::cout << "counter: " << unsigned(counter) <<std::endl;
-    if (counter >= BYTE) {
-      output.push_back(new_byte >> (counter - BYTE));
-      // std::cout << std::bitset<BYTE>(new_byte >> (counter - BYTE)) << std::endl;
-      new_byte = 0 | (new_byte & (leaf->mask >> (leaf->mask.count() + BYTE - counter)).to_ulong());
-      counter -= BYTE;
+    if (counter >= WORD) {
+      output.push_back(new_byte >> (counter - WORD));
+      new_byte &= (leaf->mask >> (leaf->mask.count() + WORD - counter)).to_ulong();
+      counter -= WORD;
     }
   }
 
-  // Encode end
-  if (counter < BYTE) {
-    new_byte <<= (BYTE-counter);
-    new_byte |= (DELIMITER >> counter);
+  // Align last WORD
+  if (counter < WORD) {
+    new_byte <<= (WORD-counter);
     output.push_back(new_byte);
   }
-  // std::cout << std::bitset<BYTE>(new_byte) << std::endl;
 
   // Add 3 bytes delimiter (255 by choice)
   output.push_back(DELIMITER);
   output.push_back(DELIMITER);
   output.push_back(DELIMITER);
+}
 
-  // for (auto it = all_trees.begin(); it != all_trees.end(); it++) {
-  //   (*it)->print();
-  // }
+void decodeHUFF(std::string & header, std::string & content, std::string & output) {
+  std::vector<std::pair<char, u_int16_t>> freq_map;
+
+  // Build vector of frequencies from header
+  for (size_t i = 0; i < header.length()-2; i+=3)
+    freq_map.push_back(std::pair<char, u_int16_t>(header[i], (header[i+1] << WORD) | header[i+2]));
+
+  // Build tree
+  btree * tree = build_huff_tree(freq_map);
+  // tree->print();
+
+  // Read content
+  std::bitset<DWORD> code = 0;
+  std::bitset<DWORD> mask = 0;
+  size_t letter_counter = 0, bit_counter = 0;
+  std::bitset<WORD> letter = content[0];
+  while (true) {
+    // Take one bit from input
+    code = (code << 1) | std::bitset<DWORD>(letter[WORD-1]);
+    letter <<= 1;
+    mask <<= 1; mask[0] = 1;
+    bit_counter++;
+    // std::cout << code << " " << mask <<std::endl;
+
+    // Find if the code means something
+    node * decoded = tree->search(code, mask);
+    if (decoded != NULL) {
+      if (*(decoded->label.c_str()) == (char)DELIMITER) break;
+      output.push_back(*(decoded->label.c_str()));
+      // printDebug("Partial", output.c_str(), output.length());
+      // return;
+      code = 0;
+      mask = 0;
+    }
+
+    // If whole WORD is read, move to the next letter
+    if (bit_counter == WORD) {
+      bit_counter = 0;
+      letter_counter++;
+      letter = content[letter_counter];
+    }
+  }
+  // std::cout << "here" << std::endl;
 }
 
 int BWTEncoding(tBWTED *bwted, FILE *inputFile, FILE *outputFile) {
@@ -280,9 +317,10 @@ int BWTEncoding(tBWTED *bwted, FILE *inputFile, FILE *outputFile) {
   while ((length = fread(&buffer, sizeof(char), BLOCK_SIZE, inputFile)) != 0) {
     // Update log counter
     bwted->uncodedSize += length;
-    bwt_string = mtf_string = rle_string = "";
+    bwt_string = mtf_string = rle_string = huff_string = "";
+    original_index = 0;
 
-    printDebug("Original", buffer, length);
+    // printDebug("Original", buffer, length);
 
     // BWT -> MTF -> RLE -> HUFF
     encodeBWT(buffer, length, &original_index, bwt_string);
@@ -290,13 +328,14 @@ int BWTEncoding(tBWTED *bwted, FILE *inputFile, FILE *outputFile) {
     encodeRLE(mtf_string, length, rle_string);
     encodeHUFF(rle_string, rle_string.length(), huff_string);
 
-    printDebug("BWT encoded", bwt_string.c_str(), length);
-    printDebug("MTF encoded", mtf_string.c_str(), length);
-    printDebug("RLE encoded", rle_string.c_str(), rle_string.length());
-    printDebug("HUF encoded", huff_string.c_str(), huff_string.length());
+    // printDebug("BWT encoded", bwt_string.c_str(), length);
+    // printDebug("MTF encoded", mtf_string.c_str(), length);
+    // printDebug("RLE encoded", rle_string.c_str(), rle_string.length());
+    // printDebug("HUF encoded", huff_string.c_str(), huff_string.length());
 
     // Write to output file
     fwrite(&original_index, sizeof(u_int32_t), 1, outputFile);
+    std::cout << original_index << std::endl;
     fwrite(huff_string.c_str(), sizeof(char), huff_string.length(), outputFile);
 
     // Update log
@@ -314,37 +353,51 @@ int BWTDecoding(tBWTED *bwted, FILE *inputFile, FILE *outputFile) {
   u_int32_t original_index = 0;
 
   char buffer[BLOCK_SIZE+1];
-  char tmp;
+  char tmp, tmp_prev = '\0', tmp_prev2 = '\0';
 
-  std::string bwt_string, mtf_string, original_string;
+  std::string huff_header, huff_string, rle_string, bwt_string, mtf_string, original_string;
   bwt_string.reserve(BLOCK_SIZE+1);
   mtf_string.reserve(BLOCK_SIZE+1);
 
   while ((length = fread(&original_index, sizeof(u_int32_t), 1, inputFile)) != 0) {
     // Update log counter
-    bwted->codedSize += length;
+    bwted->codedSize += sizeof(u_int32_t);
 
-    bwt_string = mtf_string = original_string = "";
+    huff_header = huff_string = bwt_string = mtf_string = original_string = "";
+    // printDebug("RLE partial", rle_string.c_str(), rle_string.length());
+    rle_string = "";
 
-    // Read the block until delimiter is located
-    length = 0;
-    while ((tmp = fgetc(inputFile)) != DELIMITER) {
-      buffer[length] = tmp;
-      length++;
+    tmp_prev = '\0', tmp_prev2 = '\0';
+    // Read the block until 2 delimiters are located - header
+    while (!((tmp = fgetc(inputFile)) == (char)DELIMITER && tmp_prev == (char)DELIMITER)) {
+      // printDebug("partial", &tmp, 1);
+      huff_header.push_back(tmp);
+      tmp_prev = tmp;
     }
-    bwted->codedSize += length + sizeof(DELIMITER);
+    huff_header.pop_back();
+    bwted->codedSize += huff_header.length() + sizeof(char)*2;
 
-    printDebug("Coded", buffer, length);
+    // Read the block until 3 delimiters are located - content
+    tmp_prev = '\0', tmp_prev2 = '\0';
+    while (!((tmp = fgetc(inputFile)) == (char)DELIMITER && tmp_prev == (char)DELIMITER && tmp_prev2 == (char)DELIMITER)) {
+      huff_string.push_back(tmp);
+      tmp_prev2 = tmp_prev;
+      tmp_prev = tmp;
+    }
+    huff_string.pop_back();
+    huff_string.pop_back();
+    bwted->codedSize += huff_string.length() + sizeof(char)*3;
 
-    // RLE-0 -> MTF -> BWT
-    decodeRLE(buffer, &length, mtf_string);
+    // HUFF -> RLE-0 -> MTF -> BWT
+    decodeHUFF(huff_header, huff_string, rle_string);
+    decodeRLE(rle_string, &length, mtf_string);
     decodeMTF(mtf_string, length, bwt_string);
     decodeBWT(bwt_string, length, original_index, original_string);
 
     // DEBUG print
-    printDebug("RLE decoded", mtf_string.c_str(), length);
-    printDebug("MTF decoded", bwt_string.c_str(), length);
-    printDebug("BWT decoded", original_string.c_str(), length);
+    // printDebug("RLE decoded", mtf_string.c_str(), length);
+    // printDebug("MTF decoded", bwt_string.c_str(), length);
+    // printDebug("BWT decoded", original_string.c_str(), length);
 
     // Write to output file
     fwrite(original_string.c_str(), sizeof(char), original_string.length(), outputFile);

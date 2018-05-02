@@ -4,13 +4,14 @@
 #include <iostream>
 #include <bitset>
 
-#define BYTE 8
+#define WORD 8
+#define DWORD 16
 
 struct node {
 	std::string label;
   u_int32_t count;
-  std::bitset<BYTE> code;
-	std::bitset<BYTE> mask;
+  std::bitset<DWORD> code;
+	std::bitset<DWORD> mask;
 	node *left;
 	node *right;
 };
@@ -24,6 +25,7 @@ public:
 
 	btree * join_tree(btree * tree);
 	node * search(char letter);
+	node * search(std::bitset<DWORD> code, std::bitset<DWORD> mask);
 	node * get_root();
 	void print();
 	void codify_nodes();
@@ -33,6 +35,7 @@ private:
 	void destroy_tree(node * leaf);
 	node * join_nodes(node * nodeA, node * nodeB);
 	node * search(std::string label, node * leaf);
+	node * search(std::bitset<DWORD> code, std::bitset<DWORD> mask, node * leaf);
 	void print(node * leaf);
 	void codify_nodes(node * leaf);
 };
