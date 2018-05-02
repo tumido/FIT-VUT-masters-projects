@@ -222,6 +222,7 @@ void encodeHUFF(std::string & input, size_t length, std::string & output) {
     output.push_back(it->second >> WORD);
     output.push_back(it->second);
   }
+
   // Add 2 bytes delimiter (255 by choice)
   output.push_back(DELIMITER);
   output.push_back(DELIMITER);
@@ -233,7 +234,7 @@ void encodeHUFF(std::string & input, size_t length, std::string & output) {
 
   // Encode input string
   u_int8_t counter = 0;
-  u_int16_t new_byte = 0;
+  u_int32_t new_byte = 0;
   char letter;
   for (size_t i = 0; i <= length; i++) {
     letter = (i == length) ? DELIMITER : input[i];
@@ -241,7 +242,7 @@ void encodeHUFF(std::string & input, size_t length, std::string & output) {
     new_byte <<= leaf->mask.count();
     new_byte |= (leaf->code & leaf->mask).to_ulong();
     counter += leaf->mask.count();
-    if (counter >= WORD) {
+    while (counter >= WORD) {
       output.push_back(new_byte >> (counter - WORD));
       new_byte &= (leaf->mask >> (leaf->mask.count() + WORD - counter)).to_ulong();
       counter -= WORD;
@@ -264,8 +265,11 @@ void decodeHUFF(std::string & header, std::string & content, std::string & outpu
   std::vector<std::pair<char, u_int16_t>> freq_map;
 
   // Build vector of frequencies from header
-  for (size_t i = 0; i < header.length()-2; i+=3)
-    freq_map.push_back(std::pair<char, u_int16_t>(header[i], (header[i+1] << WORD) | header[i+2]));
+  for (size_t i = 0; i < header.length()-2; i+=3) {
+    u_int16_t freq = header[i+1] << WORD;
+    freq |= std::bitset<WORD>(header[i+2]).to_ulong();
+    freq_map.push_back(std::pair<char, u_int16_t>(header[i],freq));
+  }
 
   // Build tree
   btree * tree = build_huff_tree(freq_map);
@@ -290,7 +294,6 @@ void decodeHUFF(std::string & header, std::string & content, std::string & outpu
       if (*(decoded->label.c_str()) == (char)DELIMITER) break;
       output.push_back(*(decoded->label.c_str()));
       // printDebug("Partial", output.c_str(), output.length());
-      // return;
       code = 0;
       mask = 0;
     }
@@ -335,7 +338,6 @@ int BWTEncoding(tBWTED *bwted, FILE *inputFile, FILE *outputFile) {
 
     // Write to output file
     fwrite(&original_index, sizeof(u_int32_t), 1, outputFile);
-    std::cout << original_index << std::endl;
     fwrite(huff_string.c_str(), sizeof(char), huff_string.length(), outputFile);
 
     // Update log
@@ -352,7 +354,6 @@ int BWTDecoding(tBWTED *bwted, FILE *inputFile, FILE *outputFile) {
   size_t length = 0;
   u_int32_t original_index = 0;
 
-  char buffer[BLOCK_SIZE+1];
   char tmp, tmp_prev = '\0', tmp_prev2 = '\0';
 
   std::string huff_header, huff_string, rle_string, bwt_string, mtf_string, original_string;
@@ -367,7 +368,7 @@ int BWTDecoding(tBWTED *bwted, FILE *inputFile, FILE *outputFile) {
     // printDebug("RLE partial", rle_string.c_str(), rle_string.length());
     rle_string = "";
 
-    tmp_prev = '\0', tmp_prev2 = '\0';
+    tmp_prev = '\0';
     // Read the block until 2 delimiters are located - header
     while (!((tmp = fgetc(inputFile)) == (char)DELIMITER && tmp_prev == (char)DELIMITER)) {
       // printDebug("partial", &tmp, 1);
@@ -395,6 +396,7 @@ int BWTDecoding(tBWTED *bwted, FILE *inputFile, FILE *outputFile) {
     decodeBWT(bwt_string, length, original_index, original_string);
 
     // DEBUG print
+    // printDebug("HUF decoded", rle_string.c_str(), rle_string.length());
     // printDebug("RLE decoded", mtf_string.c_str(), length);
     // printDebug("MTF decoded", bwt_string.c_str(), length);
     // printDebug("BWT decoded", original_string.c_str(), length);
@@ -404,9 +406,6 @@ int BWTDecoding(tBWTED *bwted, FILE *inputFile, FILE *outputFile) {
 
     // Update log
     bwted->uncodedSize += original_string.length();
-
-    // Null buffers
-    memset(buffer, 0, sizeof(char)*(BLOCK_SIZE+1));
   }
 
   return 0;
