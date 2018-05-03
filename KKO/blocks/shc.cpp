@@ -1,11 +1,11 @@
 #include "shc.hpp"
 
-btree * build_huff_tree(std::vector<std::pair<char, u_int16_t>>& freq_map) {
+btree * build_huff_tree(std::vector<std::pair<char, uint16_t>>& freq_map) {
   // Build the B-tree
   std::deque<btree*> all_trees;
   for (auto it = freq_map.begin(); it != freq_map.end(); it++) {
     char letter = it->first;
-    u_int32_t count = it->second;
+    uint32_t count = it->second;
     all_trees.push_back(new btree(letter, count));
   }
   // Insert special delimiter symbol
@@ -35,24 +35,24 @@ btree * build_huff_tree(std::vector<std::pair<char, u_int16_t>>& freq_map) {
 
 void shc::encode(std::string & input, size_t length, std::string & output) {
   // Count absolute frequency
-  std::vector<std::pair<char, u_int16_t>> freq_map;
+  std::vector<std::pair<char, uint16_t>> freq_map;
 
   for (size_t i = 0; i < length; i++) {
     // Locate the symbol in frequency map
     auto it = std::find_if( freq_map.begin(), freq_map.end(),
-      [&input,&i](const std::pair<char, u_int16_t>& e){ return e.first == input[i];}
+      [&input,&i](const std::pair<char, uint16_t>& e){ return e.first == input[i];}
     );
 
     // Update value
     if (it == freq_map.end())
-      freq_map.push_back(std::pair<char, u_int16_t>(input[i], 1));
+      freq_map.push_back(std::pair<char, uint16_t>(input[i], 1));
     else
       it->second += 1;
   }
 
   // Sort (from lowest to max freq)
   std::sort(freq_map.begin(), freq_map.end(),
-    [](const std::pair<char, u_int16_t>& e, const std::pair<char, u_int16_t>& f) {
+    [](const std::pair<char, uint16_t>& e, const std::pair<char, uint16_t>& f) {
       if (e.second == f.second) return e.first < f.first;
       return e.second < f.second;
     }
@@ -78,8 +78,8 @@ void shc::encode(std::string & input, size_t length, std::string & output) {
   // tree->print();
 
   // Encode input string
-  u_int8_t counter = 0;
-  u_int32_t new_byte = 0;
+  uint8_t counter = 0;
+  uint32_t new_byte = 0;
   char letter;
   for (size_t i = 0; i <= length; i++) {
     // If this is the last round, encode DELIMITER character
@@ -115,13 +115,13 @@ void shc::encode(std::string & input, size_t length, std::string & output) {
 }
 
 void shc::decode(std::string & header, std::string & content, std::string & output) {
-  std::vector<std::pair<char, u_int16_t>> freq_map;
+  std::vector<std::pair<char, uint16_t>> freq_map;
 
   // Build vector of frequencies from header
   for (size_t i = 0; i < header.length()-2; i+=3) {
-    u_int16_t freq = header[i+1] << WORD;
+    uint16_t freq = header[i+1] << WORD;
     freq |= std::bitset<WORD>(header[i+2]).to_ulong();
-    freq_map.push_back(std::pair<char, u_int16_t>(header[i],freq));
+    freq_map.push_back(std::pair<char, uint16_t>(header[i],freq));
   }
 
   // Build tree

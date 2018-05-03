@@ -1,7 +1,7 @@
 #include "btree.hpp"
 
 btree::btree() : root(NULL) {};
-btree::btree(char letter, u_int32_t count) {
+btree::btree(char letter, uint32_t count) {
 	std::string label; label += letter;
 	root = new node{label, count, 0, 0, NULL, NULL};
 }
@@ -36,7 +36,7 @@ btree * btree::join_tree(btree * tree) {
 
 node * btree::join_nodes(node * nodeA, node * nodeB) {
 	std::string label = nodeA->label + nodeB->label;
-	u_int32_t count = nodeA->count + nodeB->count;
+	uint32_t count = nodeA->count + nodeB->count;
 	return new node{label, count, 0, 0, nodeA, nodeB};
 }
 

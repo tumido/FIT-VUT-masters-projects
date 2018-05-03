@@ -11,7 +11,7 @@ namespace bwt {
    * @param index  The correct permutation index is stored here
    * @param output Encoded string
    */
-  void encode(char * buffer, size_t length, u_int32_t * index, std::string & output);
+  void encode(char * buffer, size_t length, uint32_t * index, std::string & output);
 
 
   /**
@@ -21,5 +21,5 @@ namespace bwt {
    * @param index  Original permutation index
    * @param output Plaintext string returned
    */
-  void decode(std::string & input, size_t length, u_int32_t index, std::string & output);
+  void decode(std::string & input, size_t length, uint32_t index, std::string & output);
 }

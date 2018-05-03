@@ -34,4 +34,4 @@ clean:
 	rm -rvf $(BUILD_DIR) *.o *.zip $(PROG)
 
 zip:
-	zip $(ZIP_NAME) *.cpp *.h *.pdf Makefile
+	zip $(ZIP_NAME) *.cpp *.hpp blocks/*.cpp blocks/*.hpp *.pdf Makefile

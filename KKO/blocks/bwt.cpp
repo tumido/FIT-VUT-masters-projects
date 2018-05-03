@@ -1,6 +1,6 @@
 #include "bwt.hpp"
 
-void bwt::encode(char * buffer, size_t length, u_int32_t * index, std::string & output) {
+void bwt::encode(char * buffer, size_t length, uint32_t * index, std::string & output) {
   tPositionedString permutations[BLOCK_SIZE];
 
   // Build permutations array
@@ -23,7 +23,7 @@ void bwt::encode(char * buffer, size_t length, u_int32_t * index, std::string & 
   }
 }
 
-void bwt::decode(std::string & input, size_t length, u_int32_t index, std::string & output) {
+void bwt::decode(std::string & input, size_t length, uint32_t index, std::string & output) {
   tPositionedString permutations[BLOCK_SIZE];
 
   // Build suffix array

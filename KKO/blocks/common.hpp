@@ -15,11 +15,11 @@ typedef struct {
 } tBWTED;
 
 typedef struct {
-  u_int32_t position;
+  uint32_t position;
   std::string string;
 } tPositionedString;
 
 typedef struct {
   char symbol;
-  u_int32_t count;
+  uint32_t count;
 } tFreqSymbol;

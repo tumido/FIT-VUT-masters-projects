@@ -14,7 +14,7 @@ void printDebug(const std::string & header, const char * msg, const size_t lengt
 
 int BWTEncoding(tBWTED *bwted, FILE *inputFile, FILE *outputFile) {
   size_t length = 0;
-  u_int32_t original_index = 0;
+  uint32_t original_index = 0;
 
   char buffer[BLOCK_SIZE];
   std::string bwt_string, mtf_string, rle_string, huff_string;
@@ -41,7 +41,7 @@ int BWTEncoding(tBWTED *bwted, FILE *inputFile, FILE *outputFile) {
     // printDebug("HUF encoded", huff_string.c_str(), huff_string.length());
 
     // Write to output file
-    fwrite(&original_index, sizeof(u_int32_t), 1, outputFile);
+    fwrite(&original_index, sizeof(uint32_t), 1, outputFile);
     fwrite(huff_string.c_str(), sizeof(char), huff_string.length(), outputFile);
 
     // Update log
@@ -56,7 +56,7 @@ int BWTEncoding(tBWTED *bwted, FILE *inputFile, FILE *outputFile) {
 
 int BWTDecoding(tBWTED *bwted, FILE *inputFile, FILE *outputFile) {
   size_t length = 0;
-  u_int32_t original_index = 0;
+  uint32_t original_index = 0;
 
   char tmp, tmp_prev = '\0', tmp_prev2 = '\0';
 
@@ -64,9 +64,9 @@ int BWTDecoding(tBWTED *bwted, FILE *inputFile, FILE *outputFile) {
   bwt_string.reserve(BLOCK_SIZE+1);
   mtf_string.reserve(BLOCK_SIZE+1);
 
-  while ((length = fread(&original_index, sizeof(u_int32_t), 1, inputFile)) != 0) {
+  while ((length = fread(&original_index, sizeof(uint32_t), 1, inputFile)) != 0) {
     // Update log counter
-    bwted->codedSize += sizeof(u_int32_t);
+    bwted->codedSize += sizeof(uint32_t);
 
     huff_header = huff_string = bwt_string = mtf_string = original_string = "";
     // printDebug("RLE partial", rle_string.c_str(), rle_string.length());

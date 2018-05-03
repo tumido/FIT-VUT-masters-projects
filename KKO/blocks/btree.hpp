@@ -10,7 +10,7 @@
 
 struct node {
 	std::string label;
-  u_int32_t count;
+  uint32_t count;
   std::bitset<DWORD> code;
 	std::bitset<DWORD> mask;
 	node *left;
@@ -21,7 +21,7 @@ struct node {
 class btree {
 public:
 	btree();
-	btree(char letter, u_int32_t count);
+	btree(char letter, uint32_t count);
 	~btree();
 
 	btree * join_tree(btree * tree);

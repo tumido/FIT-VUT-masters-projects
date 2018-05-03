@@ -1,7 +1,7 @@
 #include "rle.hpp"
 
 void rle::encode(std::string & input, size_t length, std::string & output) {
-  u_int8_t rle_counter;
+  uint8_t rle_counter;
   char tmp;
 
   for (size_t i = 0; i < length; i++) {
@@ -24,7 +24,7 @@ void rle::encode(std::string & input, size_t length, std::string & output) {
 void rle::decode(std::string & input, size_t * length, std::string & output) {
   for (size_t i = 0; i < input.length(); i++) {
     if ((i+1 < input.length()) && input[i] == input[i+1]) {
-      for (u_int8_t rle_counter = input[i+2]; rle_counter > 0; rle_counter--) {
+      for (uint8_t rle_counter = input[i+2]; rle_counter > 0; rle_counter--) {
         output.push_back(input[i]);
       }
       i = i+2;
