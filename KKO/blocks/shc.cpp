@@ -60,6 +60,10 @@ void shc::encode(std::string & input, size_t length, std::string & output) {
   // Save the counts in output for B-tree reconstruction
   for (auto it = freq_map.begin(); it != freq_map.end(); it++) {
     output.push_back(it->first);
+
+    // NOTE: Guard for 1xFF on the last byte of header (decrement by one shouldn't be harmful)
+    if (it+1 == freq_map.end() && (char)it->second == (char)DELIMITER) it->second--;
+
     output.push_back(it->second >> WORD);
     output.push_back(it->second);
   }

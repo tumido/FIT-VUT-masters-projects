@@ -1,5 +1,17 @@
 #include "bwted.hpp"
 
+void printDebug(const std::string & header, const char * msg, const size_t length) {
+  const std::string red("\033[0;31m");
+  const std::string reset("\033[0m");
+  std::cout << red << "DEBUG: " << reset << header << std::endl;
+  for (size_t i = 0; i < length; i++ ) {
+    if (msg[i] >= 'a') printf("%c ", msg[i]);
+    else printf("%d ", msg[i]);
+  }
+  std::cout << std::endl;
+}
+
+
 int BWTEncoding(tBWTED *bwted, FILE *inputFile, FILE *outputFile) {
   size_t length = 0;
   u_int32_t original_index = 0;
@@ -101,15 +113,4 @@ int BWTDecoding(tBWTED *bwted, FILE *inputFile, FILE *outputFile) {
   }
 
   return 0;
-}
-
-void printDebug(const std::string & header, const char * msg, const size_t length) {
-  const std::string red("\033[0;31m");
-  const std::string reset("\033[0m");
-  std::cout << red << "DEBUG: " << reset << header << std::endl;
-  for (size_t i = 0; i < length; i++ ) {
-    if (msg[i] >= 'a') printf("%c ", msg[i]);
-    else printf("%d ", msg[i]);
-  }
-  std::cout << std::endl;
 }
