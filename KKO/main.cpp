@@ -3,7 +3,7 @@
 #include <iostream>
 #include <fstream>
 
-#include "bwted.h"
+#include "bwted.hpp"
 
 #define LOGIN "xcoufa09"
 

@@ -1,4 +1,4 @@
-#include "btree.h"
+#include "btree.hpp"
 
 btree::btree() : root(NULL) {};
 btree::btree(char letter, u_int32_t count) {

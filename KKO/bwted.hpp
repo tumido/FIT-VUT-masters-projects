@@ -1,37 +1,13 @@
 #pragma once
 
-#include <stdio.h>
-#include <sys/types.h>
-#include <algorithm>
 #include <iostream>
 #include <cstring>
-#include <string>
-#include <vector>
-#include <utility>
-#include <deque>
-#include "btree.h"
 
-#define BLOCK_SIZE 10000
-#define CHAR_VALUES 256
-#define DELIMITER 0xFF
-
-/**
- * BTW encoding/decoding log report
- */
-typedef struct {
-  int64_t uncodedSize;
-  int64_t codedSize;
-} tBWTED;
-
-typedef struct {
-  u_int32_t position;
-  std::string string;
-} tPositionedString;
-
-typedef struct {
-  char symbol;
-  u_int32_t count;
-} tFreqSymbol;
+#include "blocks/common.hpp"
+#include "blocks/bwt.hpp"
+#include "blocks/mtf.hpp"
+#include "blocks/rle.hpp"
+#include "blocks/shc.hpp"
 
 /**
  * BTW encode
@@ -50,5 +26,3 @@ int BWTEncoding(tBWTED *bwted, FILE *inputFile, FILE *outputFile);
  * @return            success 0, failure when encoding -1
  */
 int BWTDecoding(tBWTED *ahed, FILE *inputFile, FILE *outputFile);
-
-void printDebug(const std::string & header, const char * msg, const size_t length);
