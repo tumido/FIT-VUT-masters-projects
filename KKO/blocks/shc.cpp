@@ -19,6 +19,7 @@ btree * build_huff_tree(std::vector<std::pair<char, uint16_t>>& freq_map) {
     all_trees.pop_front();
 
     all_trees.push_back(a->join_tree(b));
+    delete b;
 
     // Sort vector of trees so the lower frequencies are first;
     std::sort(all_trees.begin(), all_trees.end(),
@@ -107,6 +108,9 @@ void shc::encode(std::string & input, size_t length, std::string & output) {
     new_byte <<= (WORD-counter);
     output.push_back(new_byte);
   }
+  // Dealloc b-tree
+  tree->destroy_tree();
+  delete tree;
 
   // Add 3 bytes delimiter (255 by choice)
   output.push_back(DELIMITER);
@@ -162,4 +166,8 @@ void shc::decode(std::string & header, std::string & content, std::string & outp
       letter = content[letter_counter];
     }
   }
+
+  // Dealloc b-tree
+  tree->destroy_tree();
+  delete tree;
 }

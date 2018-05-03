@@ -30,6 +30,7 @@ public:
 	node * get_root();
 	void print();
 	void codify_nodes();
+	void destroy_tree();
 
 private:
   node * root;

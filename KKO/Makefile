@@ -14,6 +14,9 @@ $(PROG): main.cpp $(OBJS)
 $(BUILD_DIR)/%.o: $(SOURCE_DIR)/%.cpp
 	$(CPP) $(CPPFLAGS) -c $^ -o $@
 
+%.o: %.cpp
+	$(CPP) $(CPPFLAGS) -c $^ -o $@
+
 .PHONY: encode decode zip clean $(BUILD_DIR)
 .SILENT: encode decode
 

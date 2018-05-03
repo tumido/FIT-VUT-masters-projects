@@ -16,6 +16,12 @@ int main(int argc, char ** argv) {
   int option;
   Mode mode = NONE;
 
+  if (argc == 1) {
+    std::cout << "bwted: missing operand" << std::endl;
+    std::cout << "Try 'bwted -h' for more information" << std::endl;
+    return EXIT_FAILURE;
+  }
+
   // Parse arguments
   while ((option = getopt(argc, argv, "i:o:l:cxh")) != -1) {
     switch (option) {

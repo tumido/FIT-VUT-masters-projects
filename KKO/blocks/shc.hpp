@@ -3,6 +3,8 @@
 #include <vector>
 #include <deque>
 #include <algorithm>
+#include <bitset>
+#include <string>
 
 #include "common.hpp"
 #include "btree.hpp"

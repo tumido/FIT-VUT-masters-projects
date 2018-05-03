@@ -1,12 +1,14 @@
 #include "btree.hpp"
 
-btree::btree() : root(NULL) {};
+btree::btree() : root(NULL) {}
 btree::btree(char letter, uint32_t count) {
 	std::string label; label += letter;
 	root = new node{label, count, 0, 0, NULL, NULL};
 }
 
-btree::~btree() {
+btree::~btree() {}
+
+void btree::destroy_tree() {
 	destroy_tree(root);
 }
 
